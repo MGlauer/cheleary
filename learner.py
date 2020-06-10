@@ -4,7 +4,7 @@ from pysmiles.read_smiles import _tokenize, TokenType
 import pandas
 import numpy as np
 import re
-
+import multiprocessing as mp
   # elements + bonds + ringnumbers
 
 atom_chars = sorted(['C@@H', 'C@H', 'N@H+', 'N', 'c', 'n', 'CH', 'O', 'C', 'P', 'S', 'Cl', 'nH', 's', 'Br', 'o', 'I', 'H', '*', 'F', 'Ca', 'Al', 'OH', 'Na', 'NH', 'Se', 'Co', 'Hg', 'As', 'Mg', 'Cu', 'Si', 'Au', 'Tc', 'B', 'Fe', 'Ge', 'Sm', 'Ru', 'V', 'Mo', 'He', 'Sb', 'Yb', 'Gd', 'Li', 'Cr', 'Ag', 'Fr', 'Ba', 'Pb', 'Y', 'Sr', 'Ga', 'Eu', 'Mn', 'Os', 'Tl', 'In', 'Sn', 'Ir', 'La', 'Lu', 'Cs', 'Ce', 'W', 'Zn', 'Be', 'Bi', 'U', 'Ni', 'Ho', 'Pt', 'Rb', 'K', 'SeH', 'TeH', 'Te', 'At', 'Re', 'Ra', 'Ti', 'SiH', 'se', 'pH', 'te', 'Ar', 'Xe', 'Kr', 'Cd', 'Pd', 'Rh', 'cH', 'p', 'Ne', 'Rn', 'LiH', 'Zr', 'AsH', 'Pr', 'Po', 'Tb'], key=lambda x: -len(x))
@@ -69,16 +69,21 @@ def encode(token):
         v[index]=1
     return v
 
-with open('data/chemdata500x100x1024.pkl','rb') as output:
-    #pickle.dump(chemdata,output)
-    chemdata = pickle.load(output)
 
-#vs = sum(map(encode, chain(map(chr,chain(range(ord("A"), ord("Z")+1), range(ord("a"), ord("z")+1))), bond_char, range(0,10))))
+def encode_smiles(row):
+    return [encode(smiles) for smiles in _tokenize(row[1][2])]
 
-types = dict()
 
-input = tf.keras.preprocessing.sequence.pad_sequences([np.array([encode(smiles) for smiles in _tokenize(row[2])]) for _, row in chemdata.iterrows()])
+def generate():
+    with open('data/chemdata500x100x1024.pkl', 'rb') as output:
+        # pickle.dump(chemdata,output)
+        chemdata = pickle.load(output)
 
+    with mp.Pool(mp.cpu_count() - 2) as pool:
+        for result in pool.imap(encode_smiles, chemdata.iterrows()):
+            yield result
+
+input = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
 
 model = tf.keras.Sequential()
 model.add(tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, input_shape=(None, input_lenth), name="Forward"))
