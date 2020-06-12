@@ -95,7 +95,7 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, list(chemdata.iterrows())[:10]):
+        for result in pool.imap(encode_smiles, chemdata.iterrows()):
             yield result
 
 ds = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
