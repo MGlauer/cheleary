@@ -69,6 +69,21 @@ def encode(token):
         v[index]=1
     return v
 
+def lstm_model(input_shape):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.LSTM(100, activation='relu', input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.RepeatVector(max_len))
+    model.add(tf.keras.layers.LSTM(input_lenth, activation='relu', return_sequences=True, name="backwards"))
+    model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
+    model.compile(optimizer='adam', loss='mse')
+    return model
+
+def cnn_model(input_shape):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(100, input_shape=input_shape))
+    model.add(tf.keras.layers.Dense(input_shape[0]))
+    model.compile(optimizer='adam', loss='mse')
+    return model
 
 def encode_smiles(row):
     return [encode(smiles) for smiles in _tokenize(row[1][2])]
@@ -80,21 +95,22 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, chemdata.iterrows()):
+        for result in pool.imap(encode_smiles, list(chemdata.iterrows())[:10]):
             yield result
 
-input = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
-max_len = len(input[0])
-model = tf.keras.Sequential()
-model.add(tf.keras.layers.LSTM(100, activation='relu', input_shape=(None, input_lenth), name="Forward"))
-#print(model.output_shape)
-model.add(tf.keras.layers.RepeatVector(max_len))
-model.add(tf.keras.layers.LSTM(input_lenth, activation='relu', return_sequences=True, name="backwards"))
-model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
-model.compile(optimizer='adam', loss='mse')
+ds = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
+
+
+
+max_len = len(ds[0])
+ds = ds.reshape((len(ds), input_lenth*max_len))
+#model = lstm_model((max_len, input_lenth))
+model = cnn_model((max_len* input_lenth,))
+
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
 # fit model
-model.fit(input, input, epochs=300)
+model.fit(ds, ds, epochs=300)
+model.save("out")
 
 # demonstrate recreation
 #yhat = model.predict(chemdata["encoding"], verbose=0)
