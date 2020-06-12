@@ -80,7 +80,7 @@ def lstm_model(input_shape):
 
 def cnn_model(input_shape):
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Dense(100, input_shape=input_shape))
+    model.add(tf.keras.layers.Dense(1000, input_shape=input_shape))
     model.add(tf.keras.layers.Dense(input_shape[0]))
     model.compile(optimizer='adam', loss='mse')
     return model
@@ -103,6 +103,9 @@ ds = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
 
 
 max_len = len(ds[0])
+
+print(max_len)
+
 ds = ds.reshape((len(ds), input_lenth*max_len))
 #model = lstm_model((max_len, input_lenth))
 model = cnn_model((max_len* input_lenth,))
