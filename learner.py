@@ -84,12 +84,11 @@ def generate():
             yield result
 
 input = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
-
+max_len = len(input[0])
 model = tf.keras.Sequential()
-model.add(tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, input_shape=(None, input_lenth), name="Forward"))
+model.add(tf.keras.layers.LSTM(100, activation='relu', input_shape=(None, input_lenth), name="Forward"))
 #print(model.output_shape)
-#model.add(tf.keras.layers.RepeatVector(input_lenth))
-print(model.output_shape)
+model.add(tf.keras.layers.RepeatVector(max_len))
 model.add(tf.keras.layers.LSTM(input_lenth, activation='relu', return_sequences=True, name="backwards"))
 model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
 model.compile(optimizer='adam', loss='mse')
