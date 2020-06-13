@@ -71,10 +71,11 @@ def encode(token):
 
 def lstm_model(input_shape):
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.LSTM(100, activation='relu', input_shape=input_shape, name="forward"))
-    model.add(tf.keras.layers.RepeatVector(max_len))
+    #model.add(tf.keras.layers.Input(shape=(None, input_lenth)))
+    model.add(tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, input_shape=input_shape, name="forward"))
+    #model.add(tf.keras.layers.RepeatVector(max_len))
     model.add(tf.keras.layers.LSTM(input_lenth, activation='relu', return_sequences=True, name="backwards"))
-    model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
+    #model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
     model.compile(optimizer='adam', loss='mse')
     return model
 
@@ -95,24 +96,36 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, chemdata.iterrows()):
-            yield result
+        for result in pool.imap(encode_smiles, list(chemdata.iterrows())[:10]):
+            yield np.asarray(result)
 
-ds = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
+"""
+def create_ragged_tensor(i):
+    L = []
+    index = [0]
+    for row in i:
+        L += row
+        index.append(index[-1]+len(row))
+    return L, index
+"""
+#ds = tf.keras.preprocessing.sequence.pad_sequences(list(generate()))
 
+#ds = tf.data.Dataset.from_generator(generate, output_types=(tf.int8), output_shapes=(None, None, input_lenth))
 
-
-max_len = len(ds[0])
-
-print(max_len)
-
-ds = ds.reshape((len(ds), input_lenth*max_len))
-#model = lstm_model((max_len, input_lenth))
-model = cnn_model((max_len* input_lenth,))
+#ds = ds.reshape((len(ds), input_lenth*max_len))
+model = lstm_model((None, input_lenth))
+#model = cnn_model((max_len* input_lenth,))
 
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
 # fit model
-model.fit(ds, ds, epochs=300)
+
+#data = tf.RaggedTensor.from_row_splits(*create_ragged_tensor(generate()))
+
+for epoch in range(300):
+    print("Epoch", epoch)
+    for molecule in generate():
+        inp = np.asarray([molecule])
+        model.fit(inp, inp, use_multiprocessing=True)
 model.save("out")
 
 # demonstrate recreation
