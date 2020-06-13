@@ -96,8 +96,17 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, chemdata.iterrows()):
-            yield np.asarray(result)
+        last_len = None
+        L = []
+        for result in sorted([result for result in pool.imap(encode_smiles, chemdata.iterrows())], key=len):
+            if len(result) == last_len:
+                L.append(result)
+            else:
+                if last_len is not None:
+                    yield L
+                L = [result]
+                last_len = len(result)
+        yield L
 
 """
 def create_ragged_tensor(i):
@@ -120,11 +129,11 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 # fit model
 
 #data = tf.RaggedTensor.from_row_splits(*create_ragged_tensor(generate()))
-
+inps = list(generate())
 for epoch in range(300):
     print("Epoch", epoch)
-    for molecule in generate():
-        inp = np.asarray([molecule])
+    for molecules in inps:
+        inp = np.asarray(molecules)
         model.fit(inp, inp, use_multiprocessing=True)
 model.save("out")
 
