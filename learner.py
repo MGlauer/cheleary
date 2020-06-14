@@ -86,7 +86,8 @@ def lstm_model(input_shape):
     out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth))(lstm_out)
 
     model = tf.keras.Model(inputs=inp, outputs=out)
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='adam', loss="binary_crossentropy",
+  metrics=["accuracy"])
 
     return model
 
