@@ -28,9 +28,9 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 # fit model
 
 x, y = zip(*generate())
-
 x = tf.ragged.constant(x)
-
+y = tf.convert_to_tensor(y)
+#ds = tf.data.Dataset.from_tensor_slices((x, y))
 
 model.fit(x, y, epochs=300, use_multiprocessing=True)
 model.save("out")
