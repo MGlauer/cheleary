@@ -31,7 +31,6 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 
 x, y = zip(*generate())
 
-y = np.asarray(y, dtype="i")
 x = tf.ragged.constant(x)
 
 
