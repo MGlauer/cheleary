@@ -5,6 +5,10 @@ import pandas
 import numpy as np
 import re
 import multiprocessing as mp
+
+
+import tensorflow as tf
+import tensorflow.keras.backend as K
   # elements + bonds + ringnumbers
 
 atom_chars = sorted(['C@@H', 'C@H', 'N@H+', 'N', 'c', 'n', 'CH', 'O', 'C', 'P', 'S', 'Cl', 'nH', 's', 'Br', 'o', 'I', 'H', '*', 'F', 'Ca', 'Al', 'OH', 'Na', 'NH', 'Se', 'Co', 'Hg', 'As', 'Mg', 'Cu', 'Si', 'Au', 'Tc', 'B', 'Fe', 'Ge', 'Sm', 'Ru', 'V', 'Mo', 'He', 'Sb', 'Yb', 'Gd', 'Li', 'Cr', 'Ag', 'Fr', 'Ba', 'Pb', 'Y', 'Sr', 'Ga', 'Eu', 'Mn', 'Os', 'Tl', 'In', 'Sn', 'Ir', 'La', 'Lu', 'Cs', 'Ce', 'W', 'Zn', 'Be', 'Bi', 'U', 'Ni', 'Ho', 'Pt', 'Rb', 'K', 'SeH', 'TeH', 'Te', 'At', 'Re', 'Ra', 'Ti', 'SiH', 'se', 'pH', 'te', 'Ar', 'Xe', 'Kr', 'Cd', 'Pd', 'Rh', 'cH', 'p', 'Ne', 'Rn', 'LiH', 'Zr', 'AsH', 'Pr', 'Po', 'Tb'], key=lambda x: -len(x))
@@ -16,12 +20,11 @@ isotopes = ['1', '123', '125', '129', '13', '131', '14', '15', '18', '197', '2',
 s = set()
 
 
+tf.compat.v1.disable_eager_execution()
 
 input_lenth = len(atom_chars) + len(modifier_chars) + len(isotopes) + 2*mults + len(bond_chars) + 36 + len(branch_chars)
 print(input_lenth)
 
-
-import tensorflow as tf
 
 def encode(token):
     v = np.zeros(input_lenth, dtype="i")
@@ -69,14 +72,22 @@ def encode(token):
         v[index]=1
     return v
 
+
 def lstm_model(input_shape):
     model = tf.keras.Sequential()
-    #model.add(tf.keras.layers.Input(shape=(None, input_lenth)))
-    model.add(tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, input_shape=input_shape, name="forward"))
-    #model.add(tf.keras.layers.RepeatVector(max_len))
-    model.add(tf.keras.layers.LSTM(input_lenth, activation='relu', return_sequences=True, name="backwards"))
-    #model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth)))
+    inp = tf.keras.layers.Input(shape=(None, input_lenth))
+
+    lstm_inp = tf.keras.layers.LSTM(1000, activation='relu', input_shape=input_shape, name="forward")(inp)
+
+    reps = tf.keras.layers.RepeatVector(K.shape(inp)[1])(lstm_inp)
+
+    lstm_out = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="backwards")(reps)
+
+    out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth))(lstm_out)
+
+    model = tf.keras.Model(inputs=inp, outputs=out)
     model.compile(optimizer='adam', loss='mse')
+
     return model
 
 def cnn_model(input_shape):
@@ -128,8 +139,13 @@ model = lstm_model((None, input_lenth))
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
 # fit model
 
-#data = tf.RaggedTensor.from_row_splits(*create_ragged_tensor(generate()))
+
+
 inps = list(generate())
+
+
+#data = tf.RaggedTensor.from_row_splits(*create_ragged_tensor(generate()))
+
 for epoch in range(300):
     print("Epoch", epoch)
     for molecules in inps:
