@@ -21,7 +21,7 @@ def generate():
         last_len = None
         L = []
         for result in pool.imap(encode_smiles, chemdata.iterrows()):
-            yield result
+            yield np.asarray(result[0]), np.asarray(result[1], dtype="i")
 
 model = create_model((None, input_lenth))
 #model = cnn_model((max_len* input_lenth,))
@@ -32,7 +32,8 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 x, y = zip(*generate())
 
 y = np.asarray(y, dtype="i")
-x = tf.ragged.constant([np.asarray(v) for v in x])
+x = tf.ragged.constant(x)
+
 
 model.fit(x, y, epochs=300, use_multiprocessing=True)
 model.save("out")
