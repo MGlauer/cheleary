@@ -18,10 +18,8 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        last_len = None
-        L = []
         for result in pool.imap(encode_smiles, chemdata.iterrows()):
-            yield np.asarray(result[0]), np.asarray(result[1], dtype="i")
+            yield result
 
 model = create_model((None, input_lenth))
 #model = cnn_model((max_len* input_lenth,))

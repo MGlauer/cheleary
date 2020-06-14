@@ -12,7 +12,7 @@ input_lenth = len(atom_chars) + len(modifier_chars) + len(isotopes) + 2*mults + 
 
 
 def encode_smiles(row):
-    return [encode(smiles) for smiles in _tokenize(row[1][2])], row[1][3:]
+    return np.asarray([encode(smiles) for smiles in _tokenize(row[1][2])]), np.asarray(row[1][3:], dtype="i")
 
 def encode(token):
     v = np.zeros(input_lenth, dtype="i")
