@@ -9,7 +9,8 @@ def create_model(input_shape):
     model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
     model.add(tf.keras.layers.LSTM(100, activation='relu', input_shape=input_shape, name="forward"))
     model.add(tf.keras.layers.Dense(1024))
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='adam', loss="binary_crossentropy",
+  metrics=["accuracy"])
     return model
 
 def generate():
