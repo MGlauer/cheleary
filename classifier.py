@@ -30,17 +30,30 @@ model = create_model((None, input_lenth))
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
 # fit model
 #L = generate()
-if os.path.exists("data/x.p") and os.path.exists("data/y.p"):
-    x = pickle.load(open("data/x.p", "rb"))
-    y = pickle.load(open("data/y.p", "rb"))
+
+split = 0.7
+prefix = f"data/split_{str(split).replace('.', '_')}/"
+if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.path.exists(prefix+"eval.p"):
+    train = pickle.load(open(prefix+"train.p", "rb"))
+    test = pickle.load(open(prefix + "test.p", "rb"))
+    # eval = pickle.load(open(prefix + "eval.p", "rb"))
 else:
+    print("No data dump found! Create new data dump")
     xs, ys = zip(*generate())
     x = tf.ragged.constant(xs)
     y = tf.convert_to_tensor(ys)
-    pickle.dump( x, open( "data/x.p", "wb" ) )
-    pickle.dump( y, open( "data/y.p", "wb") )
-#ds = tf.data.Dataset.from_tensor_slices((x, y))
+    size = x.shape[0]
+    train_size = int(size * split)
+    test_size = int(size * (1-split) / 2)
+    train = x[:train_size], y[:train_size]
+    test = x[train_size:(train_size+test_size)], y[train_size:(train_size+test_size)]
+    evalu = x[(train_size+test_size):], y[(train_size+test_size):]
+    if not os.path.exists(prefix):
+        os.mkdir(prefix)
+    pickle.dump(train, open(prefix + "train.p", "wb"))
+    pickle.dump(test, open(prefix + "test.p", "wb"))
+    pickle.dump(evalu, open(prefix + "eval.p", "wb"))
+    print("done")
 
-
-model.fit(x, y, epochs=300, use_multiprocessing=True)
+model.fit(*train, epochs=300, use_multiprocessing=True)
 model.save("out")
