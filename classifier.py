@@ -7,7 +7,7 @@ from encode import encode_smiles, input_lenth
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(1024, activation='tanh', recurrent_activation='sigmoid', recurrent_dropout=0, unroll=False, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(1024, activation='tanh', recurrent_activation='sigmoid', recurrent_dropout=0, unroll=True, input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     #model.add(tf.keras.layers.Dense(1024, activation="tanh"))
