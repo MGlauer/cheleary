@@ -3,11 +3,12 @@ import pickle
 import multiprocessing as mp
 import numpy as np
 from encode import encode_smiles, input_lenth
+import os
 
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(1024, activation='tanh', recurrent_activation='sigmoid', recurrent_dropout=0, unroll=True, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(1024, activation='tanh', recurrent_activation='tanh', input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     #model.add(tf.keras.layers.Dense(1024, activation="tanh"))
@@ -29,9 +30,15 @@ model = create_model((None, input_lenth))
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_autoencoder.png')
 # fit model
 #L = generate()
-xs, ys = zip(*generate())
-x = tf.ragged.constant(xs)
-y = tf.convert_to_tensor(ys)
+if os.path.exists("data/x.p") and os.path.exists("data/y.p"):
+    x = pickle.load(open("data/x.p", "rb"))
+    y = pickle.load(open("data/y.p", "rb"))
+else:
+    xs, ys = zip(*generate())
+    x = tf.ragged.constant(xs)
+    y = tf.convert_to_tensor(ys)
+    pickle.dump( x, open( "data/x.p", "wb" ) )
+    pickle.dump( y, open( "data/y.p", "wb") )
 #ds = tf.data.Dataset.from_tensor_slices((x, y))
 
 
