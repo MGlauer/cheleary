@@ -4,7 +4,7 @@ import multiprocessing as mp
 import numpy as np
 from encode import encode_smiles, input_lenth
 import os
-
+from random import shuffle
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
@@ -39,7 +39,9 @@ if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.p
     # eval = pickle.load(open(prefix + "eval.p", "rb"))
 else:
     print("No data dump found! Create new data dump")
-    xs, ys = zip(*generate())
+    data = list(generate())
+    shuffle(data)
+    xs, ys = zip(*data)
     x = tf.ragged.constant(xs)
     y = tf.convert_to_tensor(ys)
     size = x.shape[0]
