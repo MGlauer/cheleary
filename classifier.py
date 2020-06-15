@@ -8,9 +8,9 @@ def create_model(input_shape):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
     model.add(tf.keras.layers.LSTM(1000, activation='relu', input_shape=input_shape, name="forward"))
-    model.add(tf.keras.layers.Dense(10000))
-    model.add(tf.keras.layers.Dense(5000))
-    model.add(tf.keras.layers.Dense(1024))
+    model.add(tf.keras.layers.Dense(10000, activation="relu"))
+    model.add(tf.keras.layers.Dense(5000, activation="relu"))
+    model.add(tf.keras.layers.Dense(1024, activation="sigmoid"))
     model.compile(optimizer='adam', loss="binary_crossentropy",
   metrics=["accuracy"])
     return model
