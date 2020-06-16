@@ -5,14 +5,17 @@ import numpy as np
 from encode import encode_smiles, input_lenth
 import os
 from random import shuffle
+
+loss =tf.keras.losses.BinaryCrossentropy()
+
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(1024, activation='relu', recurrent_activation='relu', input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(10000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
-    model.add(tf.keras.layers.Dense(1024, activation="sigmoid"))
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.1), loss="binary_crossentropy", metrics=["accuracy"])
+    model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid))
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01), loss=loss, metrics=["accuracy"])
     return model
 
 def generate():
@@ -21,7 +24,7 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, chemdata.iterrows()):
+        for result in pool.imap(encode_smiles, list(chemdata.iterrows())[:20]):
             yield result
 
 model = create_model((None, input_lenth))
@@ -57,5 +60,12 @@ else:
     pickle.dump(evalu, open(prefix + "eval.p", "wb"))
     print("done")
 
-model.fit(*train, epochs=300, use_multiprocessing=True)
+model.fit(*train, epochs=200, use_multiprocessing=True)
 model.save("out")
+
+
+y_pred = model.predict(test[0])
+y = test[1]
+print("Loss:", loss(y, y_pred))
+
+print(y[0], y_pred[0])
