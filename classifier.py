@@ -9,6 +9,7 @@ from random import shuffle
 loss =tf.keras.losses.BinaryCrossentropy()
 
 LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
+EPOCHS = int(os.environ.get("EPOCHS", 300))
 
 def create_model(input_shape):
     model = tf.keras.Sequential()
@@ -79,7 +80,7 @@ train, test = load_data()
 
 print("Data: ", train[0].shape[0])
 
-model.fit(*train, epochs=10, use_multiprocessing=True, batch_size=1, )
+model.fit(*train, epochs=EPOCHS, use_multiprocessing=True)
 model.summary()
 model.save("out")
 
