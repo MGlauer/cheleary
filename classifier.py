@@ -13,7 +13,7 @@ LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 def create_model(input_shape):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.relu, input_shape=input_shape, name="forward", use_bias=True, bias_initializer="ones")))
+    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, input_shape=input_shape, name="forward")))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, bias_initializer="ones"))
@@ -77,7 +77,7 @@ train, test = load_data()
 
 print("Data: ", train[0].shape[0])
 
-model.fit(*train, epochs=300, use_multiprocessing=True)
+model.fit(*train, epochs=10, use_multiprocessing=True)
 model.save("out")
 
 
