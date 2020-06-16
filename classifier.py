@@ -8,7 +8,7 @@ from random import shuffle
 
 loss =tf.keras.losses.BinaryCrossentropy()
 
-LOCAL_SIZE_RESTRICTION = os.environ.get("CHEBI_SIZE_CON", -1)
+LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 
 def create_model(input_shape):
     model = tf.keras.Sequential()
