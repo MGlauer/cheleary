@@ -11,7 +11,7 @@ loss =tf.keras.losses.BinaryCrossentropy()
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(10000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(10000, activation=tf.keras.activations.softmax, recurrent_activation=tf.keras.activations.sigmoid, input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid))
@@ -24,7 +24,7 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, list(chemdata.iterrows())[:20]):
+        for result in pool.imap(encode_smiles, chemdata.iterrows()):
             yield result
 
 model = create_model((None, input_lenth))
