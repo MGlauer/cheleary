@@ -44,9 +44,11 @@ split = 0.7
 prefix = f"data/split_{str(split).replace('.', '_')}/"
 
 if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.path.exists(prefix+"eval.p"):
+    print("Load existing data dump")
     train = pickle.load(open(prefix+"train.p", "rb"))
     test = pickle.load(open(prefix + "test.p", "rb"))
     # eval = pickle.load(open(prefix + "eval.p", "rb"))
+    print("done")
 else:
     print("No data dump found! Create new data dump")
     data = list(generate())
