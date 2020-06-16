@@ -77,7 +77,7 @@ train, test = load_data()
 
 print("Data: ", train[0].shape[0])
 
-model.fit(*train, epochs=10, use_multiprocessing=True)
+model.fit(*train, epochs=300, use_multiprocessing=True)
 model.save("out")
 
 
@@ -85,4 +85,6 @@ y_pred = model.predict(test[0])
 y = test[1]
 print("Loss:", loss(y, y_pred))
 
-print(y[0], y_pred[0])
+for y1, y2 in zip(y_pred, y):
+    print(y1, y2)
+
