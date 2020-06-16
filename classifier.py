@@ -13,7 +13,7 @@ LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(10000, activation=tf.keras.activations.softmax, recurrent_activation=tf.keras.activations.sigmoid, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(2000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.tanh, input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid))
@@ -43,31 +43,37 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 split = 0.7
 prefix = f"data/split_{str(split).replace('.', '_')}/"
 
-if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.path.exists(prefix+"eval.p"):
-    print("Load existing data dump")
-    train = pickle.load(open(prefix+"train.p", "rb"))
-    test = pickle.load(open(prefix + "test.p", "rb"))
-    # eval = pickle.load(open(prefix + "eval.p", "rb"))
-    print("done")
-else:
-    print("No data dump found! Create new data dump")
-    data = list(generate())
-    shuffle(data)
-    xs, ys = zip(*data)
-    x = tf.ragged.constant(xs)
-    y = tf.convert_to_tensor(ys)
-    size = x.shape[0]
-    train_size = int(size * split)
-    test_size = int(size * (1-split) / 2)
-    train = x[:train_size], y[:train_size]
-    test = x[train_size:(train_size+test_size)], y[train_size:(train_size+test_size)]
-    evalu = x[(train_size+test_size):], y[(train_size+test_size):]
-    if not os.path.exists(prefix):
-        os.mkdir(prefix)
-    pickle.dump(train, open(prefix + "train.p", "wb"))
-    pickle.dump(test, open(prefix + "test.p", "wb"))
-    pickle.dump(evalu, open(prefix + "eval.p", "wb"))
-    print("done")
+
+def load_data():
+    if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.path.exists(prefix+"eval.p"):
+        print("Load existing data dump")
+        train = pickle.load(open(prefix+"train.p", "rb"))
+        test = pickle.load(open(prefix + "test.p", "rb"))
+        # eval = pickle.load(open(prefix + "eval.p", "rb"))
+        print("done")
+    else:
+        print("No data dump found! Create new data dump")
+        data = list(generate())
+        shuffle(data)
+        xs, ys = zip(*data)
+        x = tf.ragged.constant(xs)
+        y = tf.convert_to_tensor(ys)
+        size = x.shape[0]
+        train_size = int(size * split)
+        test_size = int(size * (1-split) / 2)
+        train = x[:train_size], y[:train_size]
+        test = x[train_size:(train_size+test_size)], y[train_size:(train_size+test_size)]
+        evalu = x[(train_size+test_size):], y[(train_size+test_size):]
+        if not os.path.exists(prefix):
+            os.mkdir(prefix)
+        pickle.dump(train, open(prefix + "train.p", "wb"))
+        pickle.dump(test, open(prefix + "test.p", "wb"))
+        pickle.dump(evalu, open(prefix + "eval.p", "wb"))
+        print("done")
+
+    return test, train
+
+test, train = load_data()
 
 model.fit(*train, epochs=200, use_multiprocessing=True)
 model.save("out")
