@@ -13,8 +13,8 @@ LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 def create_model(input_shape):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.sigmoid, name="forward")
-    backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.sigmoid, name="backward", go_backwards=True)
+    forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="forward")
+    backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
     model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
@@ -79,7 +79,8 @@ train, test = load_data()
 
 print("Data: ", train[0].shape[0])
 
-model.fit(*train, epochs=10, use_multiprocessing=True)
+model.fit(*train, epochs=10, use_multiprocessing=True, batch_size=1, )
+model.summary()
 model.save("out")
 
 
