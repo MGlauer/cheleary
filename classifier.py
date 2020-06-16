@@ -17,7 +17,7 @@ def create_model(input_shape):
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, bias_initializer="ones"))
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=0.5), loss=loss, metrics=["accuracy"])
     return model
 
 def generate():
@@ -77,7 +77,7 @@ train, test = load_data()
 
 print("Data: ", train[0].shape[0])
 
-model.fit(*train, epochs=200, use_multiprocessing=True)
+model.fit(*train, epochs=10, use_multiprocessing=True)
 model.save("out")
 
 
