@@ -13,7 +13,7 @@ LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(2000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.tanh, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.LSTM(2000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.relu, input_shape=input_shape, name="forward"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid))
@@ -71,9 +71,11 @@ def load_data():
         pickle.dump(evalu, open(prefix + "eval.p", "wb"))
         print("done")
 
-    return test, train
+    return train, test
 
-test, train = load_data()
+train, test = load_data()
+
+print("Data: ", train[0].shape[0])
 
 model.fit(*train, epochs=200, use_multiprocessing=True)
 model.save("out")
