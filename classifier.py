@@ -8,6 +8,8 @@ from random import shuffle
 
 loss =tf.keras.losses.BinaryCrossentropy()
 
+LOCAL_SIZE_RESTRICTION = os.environ.get("CHEBI_SIZE_CON", -1)
+
 def create_model(input_shape):
     model = tf.keras.Sequential()
     #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
@@ -24,7 +26,11 @@ def generate():
         chemdata = pickle.load(output)
 
     with mp.Pool(mp.cpu_count() - 2) as pool:
-        for result in pool.imap(encode_smiles, chemdata.iterrows()):
+        if LOCAL_SIZE_RESTRICTION != -1:
+            stream = list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION]
+        else:
+            stream = chemdata.iterrows()
+        for result in pool.imap(encode_smiles, stream):
             yield result
 
 model = create_model((None, input_lenth))
@@ -36,6 +42,7 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='reconstruct_lstm_aut
 
 split = 0.7
 prefix = f"data/split_{str(split).replace('.', '_')}/"
+
 if os.path.exists(prefix+"train.p") and os.path.exists(prefix+"test.p") and os.path.exists(prefix+"eval.p"):
     train = pickle.load(open(prefix+"train.p", "rb"))
     test = pickle.load(open(prefix + "test.p", "rb"))
