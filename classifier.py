@@ -12,7 +12,7 @@ def create_model(input_shape):
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation="sigmoid"))
-    model.compile(optimizer='adam', loss="mse", metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.1), loss="binary_crossentropy", metrics=["accuracy"])
     return model
 
 def generate():
