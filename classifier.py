@@ -12,12 +12,12 @@ LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 
 def create_model(input_shape):
     model = tf.keras.Sequential()
-    #model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    model.add(tf.keras.layers.LSTM(2000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.relu, input_shape=input_shape, name="forward"))
+    model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
+    model.add(tf.keras.layers.LSTM(2000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.relu, input_shape=input_shape, name="forward", use_bias=True, bias_initializer="ones"))
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
-    model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid))
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01), loss=loss, metrics=["accuracy"])
+    model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, bias_initializer="ones"))
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=loss, metrics=["accuracy"])
     return model
 
 def generate():
