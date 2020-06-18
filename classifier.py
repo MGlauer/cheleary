@@ -6,21 +6,24 @@ from encode import encode_smiles, input_lenth
 import os
 from random import shuffle
 
-loss =tf.keras.losses.BinaryCrossentropy()
+loss =tf.keras.losses.MSE # BinaryCrossentropy()
 
 LOCAL_SIZE_RESTRICTION = int(os.environ.get("CHEBI_SIZE_CON", -1))
 EPOCHS = int(os.environ.get("EPOCHS", 300))
 
 def create_model(input_shape):
+    #mirrored_strategy = tf.distribute.MirroredStrategy()
+    #with mirrored_strategy.scope():
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=(None, input_lenth), ragged=True))
-    forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="forward")
-    backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
-    model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
+    forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="forward", use_bias=True, bias_initializer="ones")
+    #backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
+    #model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
+    model.add(forward)
     #model.add(tf.keras.layers.Dense(10000, activation="relu"))
     #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
     model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, bias_initializer="ones"))
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipvalue=0.5), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.01, clipnorm=1.0), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
     return model
 
 def generate():
