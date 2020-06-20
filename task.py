@@ -1,4 +1,4 @@
-from .config import EPOCHS
+from config import EPOCHS
 import os
 import pickle
 from random import shuffle
@@ -13,11 +13,11 @@ class LearningTask:
             self.model_path = f'models/{self.ID}'
         else:
             self.model_path = model_path
+        self.split = split
         if data_path is None:
-            self.data_path = f'data/{self.ID}'
+            self.data_path = f'data/{self.ID}/split_{split*100}'
         else:
             self.data_path = data_path
-        self.split = split
         if model is None:
             self.model = self.create_model()
         else:
@@ -30,12 +30,14 @@ class LearningTask:
         raise NotImplementedError
 
     def load_data(self):
-        if self.data_path is not None and os.path.exists(self.data_path + "train.p") and os.path.exists(
-                self.data_path + "test.p") and os.path.exists(self.data_path + "eval.p"):
+        train_path = os.path.join(self.data_path, "train.p")
+        test_path = os.path.join(self.data_path, "test.p")
+        eval_path = os.path.join(self.data_path, "eval.p")
+        if self.data_path is not None and os.path.exists(train_path) and os.path.exists(test_path) and os.path.exists(eval_path):
             print("Load existing data dump")
-            train = pickle.load(open(self.data_path + "train.p", "rb"))
-            test = pickle.load(open(self.data_path + "test.p", "rb"))
-            # eval = pickle.load(open(self.data_path + "eval.p", "rb"))
+            train = pickle.load(open(train_path, "rb"))
+            test = pickle.load(open(test_path, "rb"))
+            # eval = pickle.load(open(eval_path, "rb"))
             print("done")
         else:
             print("No data dump found! Create new data dump")
@@ -56,9 +58,9 @@ class LearningTask:
             if self.data_path is not None:
                 if not os.path.exists(self.data_path):
                     os.mkdir(self.data_path)
-                pickle.dump(train, open(self.data_path + "train.p", "wb"))
-                pickle.dump(test, open(self.data_path + "test.p", "wb"))
-                pickle.dump(evalu, open(self.data_path + "eval.p", "wb"))
+                pickle.dump(train, open(train_path, "wb"))
+                pickle.dump(test, open(test_path, "wb"))
+                pickle.dump(evalu, open(eval_path, "wb"))
             print("done")
         return train, test
 
@@ -77,3 +79,10 @@ class LearningTask:
 
             for y1, y2 in zip(y_pred, y):
                 print(y1, y2)
+
+    def run(self):
+        train, test = self.load_data()
+        self.train_model(
+            training_data=train,
+            test_data=test
+        )

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import pickle
 import multiprocessing as mp
-from .task import LearningTask
+from task import LearningTask
 from encode import encode_smiles, input_lenth
 from config import LOCAL_SIZE_RESTRICTION
 
@@ -40,3 +40,4 @@ class Classifier(LearningTask):
                 yield result
 
 task = Classifier()
+task.run()
