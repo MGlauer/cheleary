@@ -16,6 +16,11 @@ from encode import input_lenth, encode_smiles
 tf.compat.v1.disable_eager_execution()
 
 
+def handle_data_line(line):
+    smiles = line.split(" ")[0]
+    es = encode_smiles(smiles)
+    return es, es
+
 
 class Autoencoder(LearningTask):
     ID="Autoencoder"
@@ -43,12 +48,9 @@ class Autoencoder(LearningTask):
             # pickle.dump(chemdata,output)
 
             with mp.Pool(mp.cpu_count() - 2) as pool:
-                lines = inp.readlines()
-                header = lines.pop()
-                for line in lines:
-                    smiles = line.split(" ")[0]
-                    es = encode_smiles(smiles)
-                    yield es, es
+                for result in pool.imap(handle_data_line, inp.readlines()):
+                    yield result
+
 
 
 

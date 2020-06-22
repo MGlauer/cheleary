@@ -13,7 +13,7 @@ input_lenth = len(atom_chars) + len(modifier_chars) + len(isotopes) + 2*mults + 
 
 
 def encode_smiles(string):
-    return tf.ragged.constant([encode(smiles) for smiles in _tokenize(string)])
+    return [encode(smiles) for smiles in _tokenize(string)]
 
 def encode(token):
     v = np.zeros(input_lenth, dtype="i")
