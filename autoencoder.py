@@ -11,7 +11,7 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
   # elements + bonds + ringnumbers
 from task import LearningTask
-from encode import input_lenth, encode_smiles
+from encode import input_lenth, encode_smiles, atom_chars
 
 tf.compat.v1.disable_eager_execution()
 
@@ -50,6 +50,8 @@ class Autoencoder(LearningTask):
             with mp.Pool(mp.cpu_count() - 2) as pool:
                 for result in pool.imap_unordered(handle_data_line, inp.readlines()):
                     yield result
+
+        print(atom_chars)
 
 
 
