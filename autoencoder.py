@@ -18,24 +18,46 @@ tf.compat.v1.disable_eager_execution()
 
 def handle_data_line(line):
     smiles = line.split(" ")[0]
-    es = encode_smiles(smiles)
-    return es, es
+    es = np.asarray(encode_smiles(smiles))
+    return dict(inputs=np.asarray([es, es])), dict(outputs=np.asarray([es, es]))
 
 
 class Autoencoder(LearningTask):
     ID="Autoencoder"
 
+    def __init__(self):
+        super(Autoencoder, self).__init__()
+        with open('data/molecules.smi', 'r') as inp:
+            # pickle.dump(chemdata,output)
+            lines = inp.readlines()
+            self.steps_per_epoch = len(lines)
+
+    @property
+    def input_shape(self):
+        return tf.TensorShape([None, input_lenth])
+
+    @property
+    def output_shape(self):
+        return tf.TensorShape([None, input_lenth])
+
+    @property
+    def input_datatype(self):
+        return tf.bool
+
+    @property
+    def output_datatype(self):
+        return tf.bool
+
     def create_model(self):
-        model = tf.keras.Sequential()
-        inp = tf.keras.layers.Input(shape=(None, input_lenth))
+        inp = tf.keras.layers.Input(shape=(None, input_lenth), name="inputs")
 
-        lstm_inp = tf.keras.layers.LSTM(1000, activation='relu', input_shape=(None, 190), name="forward")(inp)
+        lstm_inp = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="forward")(inp)
 
-        reps = tf.keras.layers.RepeatVector(K.shape(inp)[1])(lstm_inp)
+        #reps = tf.keras.layers.RepeatVector(tf.TensorShape([None, input_lenth])[1])(lstm_inp)
 
-        lstm_out = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="backwards")(reps)
+        lstm_out = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="backwards")(lstm_inp)
 
-        out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth))(lstm_out)
+        out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth), name="outputs")(lstm_out)
 
         model = tf.keras.Model(inputs=inp, outputs=out)
         model.compile(optimizer='adam', loss="binary_crossentropy",
@@ -45,13 +67,8 @@ class Autoencoder(LearningTask):
 
     def generate_data(self):
         with open('data/molecules.smi', 'r') as inp:
-            # pickle.dump(chemdata,output)
-
-            with mp.Pool(mp.cpu_count() - 2) as pool:
-                for result in pool.imap_unordered(handle_data_line, inp.readlines()):
-                    yield result
-
-        print(atom_chars)
+            for result in map(handle_data_line, inp.readlines()):
+                yield result
 
 
 
