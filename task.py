@@ -46,6 +46,7 @@ class LearningTask:
             #                                      output_types=(dict(inputs=tf.int32), dict(outputs=tf.int32)),
             #                                      output_shapes=(dict(inputs=(None, None, 190)), dict(outputs=(None, 1024))))
             data = list(self.generate_data())
+            print("Prepare data for experiments")
             shuffle(data)
             xs, ys = zip(*data)
             x = tf.ragged.constant(xs)
