@@ -30,6 +30,7 @@ class LearningTask:
         raise NotImplementedError
 
     def load_data(self):
+
         train_path = os.path.join(self.data_path, "train.p")
         test_path = os.path.join(self.data_path, "test.p")
         eval_path = os.path.join(self.data_path, "eval.p")
@@ -41,35 +42,38 @@ class LearningTask:
             print("done")
         else:
             print("No data dump found! Create new data dump")
+            #return tf.data.Dataset.from_generator(self.generate_data,
+            #                                      output_types=(dict(inputs=tf.int32), dict(outputs=tf.int32)),
+            #                                      output_shapes=(dict(inputs=(None, None, 190)), dict(outputs=(None, 1024))))
             data = list(self.generate_data())
             shuffle(data)
             xs, ys = zip(*data)
-            x = tf.ragged.constant(xs)
-            y = tf.convert_to_tensor(ys)
-            size = x.shape[0]
+            x = list(xs)
+            y = list(ys) #tf.convert_to_tensor(ys)
+            size = len(x)
             train_size = int(size * self.split)
             test_size = int(size * (1 - self.split) / 2)
             train = x[:train_size], y[:train_size]
             test = x[train_size:(train_size + test_size)], y[train_size:(
-                        train_size + test_size)]
+                       train_size + test_size)]
             evalu = x[(train_size + test_size):], y[
-                                                  (train_size + test_size):]
+                                                 (train_size + test_size):]
 
             if self.data_path is not None:
-                if not os.path.exists(self.data_path):
-                    os.mkdir(self.data_path)
-                pickle.dump(train, open(train_path, "wb"))
-                pickle.dump(test, open(test_path, "wb"))
-                pickle.dump(evalu, open(eval_path, "wb"))
+               if not os.path.exists(self.data_path):
+                   os.makedirs(self.data_path, exist_ok=True)
+               pickle.dump(train, open(train_path, "wb"))
+               pickle.dump(test, open(test_path, "wb"))
+               pickle.dump(evalu, open(eval_path, "wb"))
             print("done")
         return train, test
 
     def train_model(self, training_data, test_data=None, save_model=None,
                     epochs=EPOCHS):
-        print("Data: ", training_data[0].shape[0])
-
-        self.model.fit(*training_data, epochs=epochs, use_multiprocessing=True)
+        #print("Data: ", len(training_data[0]))
         self.model.summary()
+        self.model.fit(training_data, epochs=epochs, use_multiprocessing=True, shuffle=False)
+
         if save_model:
             self.model.save(save_model)
 
@@ -81,8 +85,8 @@ class LearningTask:
                 print(y1, y2)
 
     def run(self):
-        train, test = self.load_data()
+        dataset= self.load_data()
         self.train_model(
-            training_data=train,
-            test_data=test
+            dataset,
+            test_data=None
         )
