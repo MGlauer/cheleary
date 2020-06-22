@@ -48,7 +48,7 @@ class Autoencoder(LearningTask):
             # pickle.dump(chemdata,output)
 
             with mp.Pool(mp.cpu_count() - 2) as pool:
-                for result in pool.imap(handle_data_line, inp.readlines()):
+                for result in pool.imap_unordered(handle_data_line, inp.readlines()):
                     yield result
 
 
