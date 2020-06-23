@@ -81,10 +81,10 @@ class LearningTask:
 
     def run(self):
         #dataset= self.load_data()
-        dataset = tf.data.Dataset.from_generator(self.load_data, output_shapes=(dict(inputs=self.input_shape), dict(outputs=self.output_shape)), output_types=(dict(inputs=self.input_datatype), dict(outputs=self.output_datatype)))
-        x = dataset.take(1)
+        #dataset = tf.data.Dataset.from_generator(self.load_data, output_shapes=(dict(inputs=self.input_shape), dict(outputs=self.output_shape)), output_types=(dict(inputs=self.input_datatype), dict(outputs=self.output_datatype)))
+        #x = dataset.take(1)
         print("Start training")
         self.train_model(
-            dataset,
+            self.load_data(),#dataset,
             test_data=None
         )

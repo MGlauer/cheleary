@@ -49,11 +49,11 @@ class Autoencoder(LearningTask):
     def create_model(self):
         inp = tf.keras.layers.Input(shape=(None, input_lenth), ragged=True, name="inputs")
 
-        lstm_inp = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="forward")(inp)
+        lstm_inp = tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, name="forward")(inp)
 
         #reps = tf.keras.layers.RepeatVector(tf.TensorShape([None, input_lenth])[1])(lstm_inp)
 
-        lstm_out = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="backwards")(lstm_inp)
+        lstm_out = tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, name="backwards")(lstm_inp)
 
         out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth), input_shape=(None, input_lenth), name="outputs")(lstm_out)
 
@@ -64,17 +64,21 @@ class Autoencoder(LearningTask):
         return model
 
     def generate_data(self):
-        with open('data/molecules.smi', 'r') as inp:
+        with open('data/molecules_sorted.smi', 'r') as inp:
             x = []
             y = []
+            last_len = None
             for result in map(handle_data_line, inp.readlines()):
-                x.append(result[0])
-                y.append(result[1])
-                if len(x) >= self.batch_size:
-                    yield dict(inputs=x), \
-                          dict(outputs=y)
-                    x = []
-                    y = []
+                if len(result[0]) == last_len:
+                    x.append(result[0])
+                    y.append(result[1])
+                else:
+                    if last_len is not None:
+                        yield dict(inputs=np.asarray(x)), \
+                              dict(outputs=np.asarray(y))
+                    x = [result[0]]
+                    y = [result[1]]
+                    last_len = len(result[0])
 
 
 
