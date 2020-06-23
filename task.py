@@ -67,7 +67,7 @@ class LearningTask:
                     epochs=EPOCHS):
         #print("Data: ", len(training_data[0]))
         self.model.summary()
-        self.model.fit(training_data, epochs=epochs, use_multiprocessing=True, shuffle=False, steps_per_epoch=self.steps_per_epoch)
+        self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
             self.model.save(save_model)
@@ -80,7 +80,10 @@ class LearningTask:
                 print(y1, y2)
 
     def run(self):
-        dataset= self.load_data()
+        #dataset= self.load_data()
+        dataset = tf.data.Dataset.from_generator(self.load_data, output_shapes=(dict(inputs=self.input_shape), dict(outputs=self.output_shape)), output_types=(dict(inputs=self.input_datatype), dict(outputs=self.output_datatype)))
+        x = dataset.take(1)
+        print("Start training")
         self.train_model(
             dataset,
             test_data=None

@@ -13,13 +13,10 @@ import tensorflow.keras.backend as K
 from task import LearningTask
 from encode import input_lenth, encode_smiles, atom_chars
 
-tf.compat.v1.disable_eager_execution()
-
-
 def handle_data_line(line):
     smiles = line.split(" ")[0]
-    es = np.asarray(encode_smiles(smiles))
-    return dict(inputs=np.asarray([es, es])), dict(outputs=np.asarray([es, es]))
+    es = encode_smiles(smiles)
+    return es, es
 
 
 class Autoencoder(LearningTask):
@@ -27,6 +24,7 @@ class Autoencoder(LearningTask):
 
     def __init__(self):
         super(Autoencoder, self).__init__()
+        self.batch_size = 2
         with open('data/molecules.smi', 'r') as inp:
             # pickle.dump(chemdata,output)
             lines = inp.readlines()
@@ -49,7 +47,7 @@ class Autoencoder(LearningTask):
         return tf.bool
 
     def create_model(self):
-        inp = tf.keras.layers.Input(shape=(None, input_lenth), name="inputs")
+        inp = tf.keras.layers.Input(shape=(None, input_lenth), ragged=True, name="inputs")
 
         lstm_inp = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="forward")(inp)
 
@@ -57,7 +55,7 @@ class Autoencoder(LearningTask):
 
         lstm_out = tf.keras.layers.LSTM(1000, activation='relu', return_sequences=True, name="backwards")(lstm_inp)
 
-        out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth), name="outputs")(lstm_out)
+        out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth), input_shape=(None, input_lenth), name="outputs")(lstm_out)
 
         model = tf.keras.Model(inputs=inp, outputs=out)
         model.compile(optimizer='adam', loss="binary_crossentropy",
@@ -67,8 +65,17 @@ class Autoencoder(LearningTask):
 
     def generate_data(self):
         with open('data/molecules.smi', 'r') as inp:
+            x = []
+            y = []
             for result in map(handle_data_line, inp.readlines()):
-                yield result
+                x.append(result[0])
+                y.append(result[1])
+                if len(x) >= self.batch_size:
+                    yield dict(inputs=x), \
+                          dict(outputs=y)
+                    x = []
+                    y = []
+
 
 
 
