@@ -39,19 +39,19 @@ class Classifier(LearningTask):
 
     def create_model(self):
         tf.executing_eagerly()
-        loss = tf.keras.losses.MSE  # BinaryCrossentropy()
+        loss = tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.Embedding(300,20, input_shape=(None,), name="inputs"))
         #model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(190)))#
-        forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.tanh, name="forward", use_bias=True, bias_initializer="ones")
+        forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
         #backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
         #model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
         model.add(forward)
         #model.add(tf.keras.layers.Dense(10000, activation="relu"))
         #model.add(tf.keras.layers.Dense(5000, activation="tanh"))
-        model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, bias_initializer="ones", name="outputs"))
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01, clipnorm=1.0), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
+        model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, name="outputs"))
+        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.01, clipnorm=1.0), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
         print(model.losses)
         return model
 
