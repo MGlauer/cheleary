@@ -20,6 +20,63 @@ complex_atom_regex = fr"(?P<lhr>{atom_regex}+)(?P<atom_modifier>{'|'.join(map(re
 def encode_smiles(string):
     return [encode(smiles) for smiles in _tokenize(string)]
 
+
+def int_encode_smiles(string):
+    return [encode(smiles) for smiles in _tokenize(string)]
+
+def _int_encode(token):
+    v = np.zeros(input_lenth, dtype=np.bool)
+    t, x = token
+    indices = []
+    offset = 0
+    if t == TokenType.ATOM:
+        regex = re.compile(rf"^(?P<isotopes>\d+)?"
+                           rf"((?P<atoms>({atom_regex})*)|(?P<complex_atom>({complex_atom_regex})+))"
+                           rf"(?P<multiplicity_0>{mult_regex})?"
+                           rf"(?P<modifier>{'|'.join(map(re.escape, modifier_chars))})?"
+                           rf"(?P<multiplicity_1>{mult_regex})?$")
+        for y in ["[", "]"]:
+            x = x.replace(y, "")
+        match = regex.match(x)
+        if match is not None:
+            offset = 0
+            if match.group("atoms"):
+                encode_atoms(match.group("atoms"), indices)
+            if match.group("complex_atom"):
+                encode_atoms(match.group("lhr"), indices)
+                indices.append(modifier_chars.index(match.group("atom_modifier")) + offset)
+                encode_atoms(match.group("rhr"), indices)
+            offset += len(atom_chars)
+            if match.group("modifier"):
+                indices.append(modifier_chars.index(match.group("modifier")) + offset)
+            offset += len(modifier_chars)
+            if match.group("isotopes"):
+                indices.append(offset)
+            offset += 1
+            for i in range(0, 2):
+                if match.group("multiplicity_" + str(i)):
+                    indices.append(int(match.group("multiplicity_" + str(i))) + offset + mults * i)
+        else:
+            raise Exception("Could not encode atom", x)
+    else:
+        offset += len(atom_chars) + len(modifier_chars) + 1 + 2 * mults
+        if t == TokenType.BOND_TYPE or t == TokenType.EZSTEREO:
+            indices.append(bond_chars.index(x))
+
+        else:
+            offset += len(bond_chars)
+            if t == TokenType.RING_NUM:
+                indices.append(x + offset - 1)
+            else:
+                offset += 36
+                if t == TokenType.BRANCH_START or t == TokenType.BRANCH_END:
+                    indices.append(branch_chars.index(x))
+    if not indices:
+        raise Exception("Could not encode", x)
+    for index in indices:
+        v[index] = True
+    return v
+
 def encode_atoms(group, indices):
     for submatch in re.finditer(atom_regex, group):
         atom = submatch.groups()[0]

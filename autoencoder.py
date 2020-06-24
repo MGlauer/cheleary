@@ -47,13 +47,13 @@ class Autoencoder(LearningTask):
         return tf.bool
 
     def create_model(self):
-        inp = tf.keras.layers.Input(shape=(None, input_lenth), ragged=True, name="inputs")
+        inp = tf.keras.layers.Input(shape=(None,), name="inputs")
 
-        lstm_inp = tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, name="forward")(inp)
+        lstm_inp = tf.keras.layers.LSTM(100, activation='relu', name="forward")(inp)
 
-        #reps = tf.keras.layers.RepeatVector(tf.TensorShape([None, input_lenth])[1])(lstm_inp)
+        reps = tf.tile(tf.reshape(lstm_inp, [-1, 1, 100]), (1,K.shape(inp)[1],1))
 
-        lstm_out = tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, name="backwards")(lstm_inp)
+        lstm_out = tf.keras.layers.LSTM(100, activation='relu', return_sequences=True, name="backwards")(reps)
 
         out = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(input_lenth), input_shape=(None, input_lenth), name="outputs")(lstm_out)
 
