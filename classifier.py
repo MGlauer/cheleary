@@ -9,6 +9,18 @@ import numpy as np
 class Classifier(LearningTask):
     ID = 'classifier'
 
+    def __init__(self):
+        super(Classifier, self).__init__()
+        with open('data/chemdata500x100x1024.pkl', 'rb') as output:
+            # pickle.dump(chemdata,output)
+            chemdata = pickle.load(output)
+            if LOCAL_SIZE_RESTRICTION != -1:
+                stream = list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION]
+            else:
+                stream = chemdata.iterrows()
+
+            self.steps_per_epoch = sum(1 for _ in stream)
+
     @property
     def input_shape(self):
         return (None,  None)
@@ -49,6 +61,7 @@ class Classifier(LearningTask):
             chemdata = pickle.load(output)
 
         #with mp.Pool(mp.cpu_count() - 2) as pool:
+        while True:
             if LOCAL_SIZE_RESTRICTION != -1:
                 stream = list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION]
             else:
@@ -56,7 +69,7 @@ class Classifier(LearningTask):
             for result in stream:
                 smiles = [ord(s) for s in result[1][2]]
                 labels = [int(l) for l in result[1][3:]]
-                yield (dict(inputs=np.asarray([smiles, smiles])), dict(outputs=np.asarray([labels, labels])))
+                yield np.asarray([smiles]), np.asarray([labels])
 
 task = Classifier()
 task.run()
