@@ -65,14 +65,14 @@ class LearningTask:
             return self.generate_data()
 
 
-    def train_model(self, training_data, test_data=None, save_model=None,
+    def train_model(self, training_data, test_data=None, save_model=True,
                     epochs=EPOCHS):
         #print("Data: ", len(training_data[0]))
         self.model.summary()
         self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
-            self.model.save(save_model)
+            self.model.save(self.ID)
 
         if test_data:
             y_pred = self.model.predict(test_data[0])
