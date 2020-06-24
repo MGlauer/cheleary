@@ -42,9 +42,9 @@ class Classifier(LearningTask):
         loss = tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
-        model.add(tf.keras.layers.Embedding(300,20, input_shape=(None,), name="inputs"))
+        model.add(tf.keras.layers.Embedding(300,50, input_shape=(None,), name="inputs"))
         #model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(190)))#
-        forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
+        forward = tf.keras.layers.LSTM(1000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
         #backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
         #model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
         model.add(forward)
