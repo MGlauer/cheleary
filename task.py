@@ -25,6 +25,8 @@ class LearningTask:
 
         self.steps_per_epoch = None
 
+        self.training_ratio = 0.7
+
     @property
     def input_shape(self):
         raise NotImplementedError

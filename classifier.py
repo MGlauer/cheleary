@@ -19,7 +19,7 @@ class Classifier(LearningTask):
             else:
                 stream = chemdata.iterrows()
 
-            self.steps_per_epoch = sum(1 for _ in stream)
+            self.steps_per_epoch = int(sum(1 for _ in stream)*self.training_ratio)
 
     @property
     def input_shape(self):
@@ -55,7 +55,7 @@ class Classifier(LearningTask):
         print(model.losses)
         return model
 
-    def generate_data(self):
+    def generate_data(self, kind="train"):
         with open('data/chemdata500x100x1024.pkl', 'rb') as output:
             # pickle.dump(chemdata,output)
             chemdata = pickle.load(output)
@@ -63,13 +63,14 @@ class Classifier(LearningTask):
         #with mp.Pool(mp.cpu_count() - 2) as pool:
         while True:
             if LOCAL_SIZE_RESTRICTION != -1:
-                stream = list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION]
+                stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
             else:
                 stream = chemdata.iterrows()
-            for result in stream:
-                smiles = [ord(s) for s in result[1][2]]
-                labels = [int(l) for l in result[1][3:]]
-                yield np.asarray([smiles]), np.asarray([labels])
-
+            for i in range(self.steps_per_epoch):
+                result = next(stream)
+                if kind=="train":
+                    smiles = [ord(s) for s in result[1][2]]
+                    labels = [int(l) for l in result[1][3:]]
+                    yield np.asarray([smiles]), np.asarray([labels])
 task = Classifier()
 task.run()
