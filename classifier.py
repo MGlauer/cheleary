@@ -11,7 +11,7 @@ class Classifier(LearningTask):
 
     @property
     def input_shape(self):
-        return (None,None)
+        return (None,  None)
 
     @property
     def output_shape(self):
@@ -27,13 +27,12 @@ class Classifier(LearningTask):
 
     def create_model(self):
         tf.executing_eagerly()
-        input_shape = (None, input_lenth)
         loss = tf.keras.losses.MSE  # BinaryCrossentropy()
 
         model = tf.keras.Sequential()
-        model.add(tf.keras.layers.Embedding(300,20, name="inputs"))
+        model.add(tf.keras.layers.Embedding(300,20, input_shape=(None,), name="inputs"))
         #model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(190)))#
-        forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="forward", use_bias=True, bias_initializer="ones")
+        forward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.tanh, name="forward", use_bias=True, bias_initializer="ones")
         #backward = tf.keras.layers.LSTM(100, activation=tf.keras.activations.tanh, input_shape=input_shape, recurrent_activation=tf.keras.activations.tanh, name="backward", go_backwards=True)
         #model.add(tf.keras.layers.Bidirectional(forward, backward_layer=backward))
         model.add(forward)
@@ -57,7 +56,7 @@ class Classifier(LearningTask):
             for result in stream:
                 smiles = [ord(s) for s in result[1][2]]
                 labels = [int(l) for l in result[1][3:]]
-                yield (dict(inputs=np.asarray([smiles])), dict(outputs=np.asarray([labels])))
+                yield (dict(inputs=np.asarray([smiles, smiles])), dict(outputs=np.asarray([labels, labels])))
 
 task = Classifier()
 task.run()

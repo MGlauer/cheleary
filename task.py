@@ -66,7 +66,7 @@ class LearningTask:
     def train_model(self, training_data, test_data=None, save_model=None,
                     epochs=EPOCHS):
         #print("Data: ", len(training_data[0]))
-        #self.model.summary()
+        self.model.summary()
         self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
