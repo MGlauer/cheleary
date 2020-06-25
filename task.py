@@ -3,12 +3,18 @@ import os
 import pickle
 from random import shuffle
 import tensorflow as tf
-from encode import input_lenth
+from encode import Encoder
+import numpy as np
+
 
 class LearningTask:
     ID = 'classifier'
 
-    def __init__(self, model=None, model_path=None, data_path=None, split=0.7):
+    def __init__(self, input_encoder:Encoder = None, output_encoder:Encoder = None, model=None, model_path=None, data_path=None, batch_size=1, split=0.7):
+        self.input_encoder = input_encoder
+        self.output_encoder = output_encoder
+        self.batch_size = batch_size
+
         if model_path is None:
             self.model_path = f'models/{self.ID}'
         else:
@@ -50,23 +56,18 @@ class LearningTask:
         raise NotImplementedError
 
     def load_data(self):
-
-        train_path = os.path.join(self.data_path, "train.p")
-        test_path = os.path.join(self.data_path, "test.p")
-        eval_path = os.path.join(self.data_path, "eval.p")
-        if self.data_path is not None and os.path.exists(train_path) and os.path.exists(test_path) and os.path.exists(eval_path):
-            print("Load existing data dump")
-            train = pickle.load(open(train_path, "rb"))
-            test = pickle.load(open(test_path, "rb"))
-            # eval = pickle.load(open(eval_path, "rb"))
-            print("done")
-        else:
-            print("No data dump found! Create new data dump")
-            return self.generate_data()
+        in_batch = []
+        out_batch = []
+        for x, y in self.generate_data():
+            in_batch.append(self.input_encoder.run(x))
+            out_batch.append(self.output_encoder.run(y))
+            if len(in_batch) >= self.batch_size:
+                yield np.asarray(in_batch), np.asarray(out_batch)
+                in_batch = []
+                out_batch = []
 
     def train_model(self, training_data, test_data=None, save_model=True,
                     epochs=EPOCHS):
-        #print("Data: ", len(training_data[0]))
         self.model.summary()
         self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
 
