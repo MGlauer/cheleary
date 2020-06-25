@@ -19,7 +19,7 @@ class LearningTask:
         else:
             self.data_path = data_path
         if model is None:
-            self.model = self.create_model()
+            self.load_model()
         else:
             self.model = model
 
@@ -64,7 +64,6 @@ class LearningTask:
             print("No data dump found! Create new data dump")
             return self.generate_data()
 
-
     def train_model(self, training_data, test_data=None, save_model=True,
                     epochs=EPOCHS):
         #print("Data: ", len(training_data[0]))
@@ -72,7 +71,7 @@ class LearningTask:
         self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
-            self.model.save(self.ID)
+            self.model.save(self.model_path)
 
         if test_data:
             y_pred = self.model.predict(test_data[0])
@@ -81,10 +80,17 @@ class LearningTask:
             for y1, y2 in zip(y_pred, y):
                 print(y1, y2)
 
+    def load_model(self):
+
+        if os.path.exists(self.model_path):
+            print("Load existing model")
+            self.model = tf.keras.models.load_model(self.model_path)
+        else:
+            print("No model found - create a new one")
+            self.model = self.create_model()
+
     def run(self):
         dataset= self.load_data()
-        #dataset = tf.data.Dataset.from_generator(self.load_data, output_shapes=(dict(inputs=self.input_shape), dict(outputs=self.output_shape)), output_types=(dict(inputs=self.input_datatype), dict(outputs=self.output_datatype)))
-        #x = dataset.take(1)
         print("Start training")
         self.train_model(
             dataset,
