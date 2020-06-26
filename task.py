@@ -5,7 +5,7 @@ from random import shuffle
 import tensorflow as tf
 from encode import Encoder
 import numpy as np
-
+from time import time
 
 class LearningTask:
     ID = 'classifier'
@@ -16,7 +16,7 @@ class LearningTask:
         self.batch_size = batch_size
 
         if model_path is None:
-            self.model_path = f'models/{self.ID}'
+            self.model_path = f'models/{self.ID}/{time()}'
         else:
             self.model_path = model_path
         self.split = split
@@ -69,7 +69,7 @@ class LearningTask:
     def train_model(self, training_data, test_data=None, save_model=True,
                     epochs=EPOCHS):
         self.model.summary()
-        self.model.fit(training_data, epochs=epochs, shuffle=False, steps_per_epoch=self.steps_per_epoch)
+        self.model.fit(training_data, epochs=epochs, steps_per_epoch=self.steps_per_epoch, use_multiprocessing=True)
 
         if save_model:
             self.model.save(self.model_path)

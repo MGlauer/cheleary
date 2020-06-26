@@ -42,11 +42,11 @@ class Classifier(LearningTask):
         loss = tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
-        model.add(tf.keras.layers.Embedding(300,50, input_shape=(None,), name="inputs"))
+        model.add(tf.keras.layers.Embedding(1000, 100, input_shape=(None,), name="inputs"))
         forward = tf.keras.layers.LSTM(1000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
         model.add(forward)
         model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, name="outputs"))
-        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.01, clipnorm=1.0), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
+        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.01), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
         print(model.losses)
         return model
 
@@ -67,5 +67,9 @@ class Classifier(LearningTask):
                     yield result[1][2], result[1][3:]
 
 
-task = Classifier(input_encoder=encode.CharacterOrdEncoder(), output_encoder=encode.IntEncoder())
+task = Classifier(
+    #input_encoder=encode.CharacterOrdEncoder(),
+    input_encoder=encode.AtomOrdEncoder(),
+    output_encoder=encode.IntEncoder())
+
 task.run()
