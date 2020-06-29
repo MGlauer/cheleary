@@ -148,13 +148,13 @@ class SmilesAtomEncoder(Encoder):
                 offset = 0
                 if match.group("atoms"):
                     for i in self._encode_atoms(match.group("atoms")):
-                        yield i
+                        yield i + offset
                 if match.group("complex_atom"):
                     for i in self._encode_atoms(match.group("lhr")):
-                        yield i
+                        yield i + offset
                     yield self.__modifier_chars.index(match.group("atom_modifier")) + offset
                     for i in self._encode_atoms(match.group("rhr")):
-                        yield i
+                        yield i + offset
                 offset += len(self.__atom_chars)
                 if match.group("modifier"):
                     yield self.__modifier_chars.index(match.group("modifier")) + offset
@@ -170,24 +170,27 @@ class SmilesAtomEncoder(Encoder):
         else:
             offset += len(self.__atom_chars) + len(self.__modifier_chars) + 1 + 2 * self.__mults
             if t == TokenType.BOND_TYPE or t == TokenType.EZSTEREO:
-                yield self.__bond_chars.index(x)
+                yield self.__bond_chars.index(x) + offset
 
             else:
                 offset += len(self.__bond_chars)
                 if t == TokenType.RING_NUM:
-                    yield (x + offset - 1)
+                    yield x + offset - 1
                 else:
                     offset += 36
                     if t == TokenType.BRANCH_START or t == TokenType.BRANCH_END:
-                        yield (self.__branch_chars.index(x))
+                        yield self.__branch_chars.index(x) + offset
 
     def _encode_atoms(self, group):
+        results = False
         for submatch in re.finditer(self.__atom_regex, group):
+            results = True
             atom = submatch.groups()[0]
             if atom == "*":
                 atom = "\*"
             yield self.__atom_chars.index(atom)
-
+        if not results:
+            raise Exception("Could not encode", group)
 
 class AtomOrdEncoder(Encoder):
     def __init__(self):
