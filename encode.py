@@ -130,9 +130,7 @@ class SmilesAtomEncoder(Encoder):
         raise (None, self.__input_lenth)
 
     def run(self, input):
-        for smiles in _tokenize(input):
-            for i in self._encode_token(smiles):
-                yield i
+        return [ i for smiles in _tokenize(input) for i in self._encode_token(smiles) ]
 
     def _encode_token(self, token):
         t, x = token

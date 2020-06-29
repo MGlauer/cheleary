@@ -69,7 +69,7 @@ class LearningTask:
     def train_model(self, training_data, test_data=None, save_model=True,
                     epochs=EPOCHS):
         self.model.summary()
-        self.model.fit(training_data, epochs=epochs, steps_per_epoch=self.steps_per_epoch, use_multiprocessing=True)
+        self.model.fit(training_data, epochs=epochs, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
             self.model.save(self.model_path)
