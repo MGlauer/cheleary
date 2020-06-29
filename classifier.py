@@ -69,7 +69,7 @@ class Classifier(LearningTask):
 
 task = Classifier(
     #input_encoder=encode.CharacterOrdEncoder(),
-    input_encoder=encode.AtomOrdEncoder(),
+    input_encoder=encode.SmilesAtomEncoder(),
     output_encoder=encode.IntEncoder())
 
 task.run()
