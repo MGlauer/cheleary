@@ -9,6 +9,11 @@ def get_encoder(ID):
     return _ENCODERS[ID]
 
 
+def register(cls):
+    assert cls.ID is not None
+    _ENCODERS[cls.ID] = cls
+
+
 class Encoder:
     ID = None
 
@@ -26,6 +31,7 @@ class Encoder:
 class SmilesOneHotEncoder(Encoder):
     # atom_chars = sorted(['C@@H', 'C@H', 'N@H+', 'Nb', 'Ta', 'N', 'c', 'n', 'CH', 'O', 'C', 'P', 'S', 'Cl', 'nH', 's', 'Br', 'o', 'I', 'H', '*', 'F', 'Ca', 'Al', 'OH', 'Na', 'NH', 'Se', 'Co', 'Hg', 'As', 'Mg', 'Cu', 'Si', 'Au', 'Tc', 'B', 'Fe', 'Ge', 'Sm', 'Ru', 'V', 'Mo', 'He', 'Sb', 'Yb', 'Gd', 'Li', 'Cr', 'Ag', 'Fr', 'Ba', 'Pb', 'Y', 'Sr', 'Ga', 'Eu', 'Mn', 'Os', 'Tl', 'In', 'Sn', 'Ir', 'La', 'Lu', 'Cs', 'Ce', 'W', 'Zn', 'Be', 'Bi', 'U', 'Ni', 'Ho', 'Pt', 'Rb', 'K', 'SeH', 'TeH', 'Te', 'At', 'Re', 'Ra', 'Ti', 'SiH', 'se', 'pH', 'te', 'Ar', 'Xe', 'Kr', 'Cd', 'Pd', 'Rh', 'cH', 'p', 'Ne', 'Rn', 'LiH', 'Zr', 'AsH', 'Pr', 'Po', 'Tb'], key=lambda x: -len(x))
     def __init__(self):
+        super(SmilesOneHotEncoder, self).__init__()
         self.__atom_chars = ["\*", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl",
                       "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se",
                       "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb",
@@ -115,8 +121,11 @@ class SmilesOneHotEncoder(Encoder):
 
 
 class SmilesAtomEncoder(Encoder):
+    ID = "SAE"
+
     # atom_chars = sorted(['C@@H', 'C@H', 'N@H+', 'Nb', 'Ta', 'N', 'c', 'n', 'CH', 'O', 'C', 'P', 'S', 'Cl', 'nH', 's', 'Br', 'o', 'I', 'H', '*', 'F', 'Ca', 'Al', 'OH', 'Na', 'NH', 'Se', 'Co', 'Hg', 'As', 'Mg', 'Cu', 'Si', 'Au', 'Tc', 'B', 'Fe', 'Ge', 'Sm', 'Ru', 'V', 'Mo', 'He', 'Sb', 'Yb', 'Gd', 'Li', 'Cr', 'Ag', 'Fr', 'Ba', 'Pb', 'Y', 'Sr', 'Ga', 'Eu', 'Mn', 'Os', 'Tl', 'In', 'Sn', 'Ir', 'La', 'Lu', 'Cs', 'Ce', 'W', 'Zn', 'Be', 'Bi', 'U', 'Ni', 'Ho', 'Pt', 'Rb', 'K', 'SeH', 'TeH', 'Te', 'At', 'Re', 'Ra', 'Ti', 'SiH', 'se', 'pH', 'te', 'Ar', 'Xe', 'Kr', 'Cd', 'Pd', 'Rh', 'cH', 'p', 'Ne', 'Rn', 'LiH', 'Zr', 'AsH', 'Pr', 'Po', 'Tb'], key=lambda x: -len(x))
     def __init__(self):
+        super(SmilesAtomEncoder, self).__init__()
         self.__atom_chars = ["\*", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl",
                       "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se",
                       "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb",
@@ -206,6 +215,7 @@ class SmilesAtomEncoder(Encoder):
 
 class AtomOrdEncoder(Encoder):
     def __init__(self):
+        super(AtomOrdEncoder, self).__init__()
         __tokens = {
             1: ['*', '11B', '123I', '125I', '129Xe', '131I', '13C', '13C@', '13C@@', '13C@@H', '13C@H', '13CH', '13CH2',
                 '13CH3', '13c', '13cH', '14C', '14CH3', '14c', '15N', '15NH', '15NH2', '15NH3', '15NH4', '15n', '15nH',
@@ -260,7 +270,6 @@ class AtomOrdEncoder(Encoder):
     def run(self, input):
         return [self._encode_token(smiles) for smiles in _tokenize(input)]
 
-
 class CharacterOrdEncoder(Encoder):
 
     @property
@@ -272,6 +281,7 @@ class CharacterOrdEncoder(Encoder):
 
 
 class IntEncoder(Encoder):
+    ID = "IE"
 
     @property
     def shape(self):
@@ -281,4 +291,5 @@ class IntEncoder(Encoder):
         return [int(c) for c in input]
 
 
-
+register(SmilesAtomEncoder)
+register(IntEncoder)

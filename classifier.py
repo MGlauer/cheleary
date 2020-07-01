@@ -1,7 +1,7 @@
 import tensorflow as tf
 import pickle
 import multiprocessing as mp
-from task import LearningTask
+from task import LearningTask, register
 import encode
 from config import LOCAL_SIZE_RESTRICTION
 import numpy as np
@@ -19,7 +19,10 @@ class Classifier(LearningTask):
             else:
                 stream = chemdata.iterrows()
 
-            self.steps_per_epoch = int(sum(1 for _ in stream)*self.training_ratio)
+            self.total_data = sum(1 for _ in stream)
+            self.steps_per_epoch = int(self.total_data*self.training_ratio)
+            self.test_amount = int(self.total_data*self.training_ratio/2)
+            self.eval_amount = self.total_data - (self.steps_per_epoch + self.test_amount)
 
     @property
     def input_shape(self):
@@ -50,7 +53,7 @@ class Classifier(LearningTask):
         print(model.losses)
         return model
 
-    def generate_data(self, kind="train"):
+    def generate_data(self, kind="train", loop=False):
         with open('data/chemdata500x100x1024.pkl', 'rb') as output:
             # pickle.dump(chemdata,output)
             chemdata = pickle.load(output)
@@ -65,3 +68,17 @@ class Classifier(LearningTask):
                 result = next(stream)
                 if kind=="train":
                     yield result[1][2], result[1][3:]
+            if kind in ("test", "eval"):
+                for i in range(self.test_amount):
+                    result = next(stream)
+                    if kind == "test":
+                        yield result[1][2], result[1][3:]
+            if kind == "eval":
+                for i in range(self.test_amount):
+                    result = next(stream)
+                    if kind == "eval":
+                        yield result[1][2], result[1][3:]
+            if not loop:
+                break
+
+register(Classifier)

@@ -10,7 +10,7 @@ import multiprocessing as mp
 import tensorflow as tf
 import tensorflow.keras.backend as K
   # elements + bonds + ringnumbers
-from task import LearningTask
+from task import LearningTask, register
 from encode import input_lenth, encode_smiles, atom_chars
 
 def handle_data_line(line):
@@ -79,3 +79,5 @@ class Autoencoder(LearningTask):
                     x = [result[0]]
                     y = [result[1]]
                     last_len = len(result[0])
+
+register(Autoencoder)
