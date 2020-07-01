@@ -2,7 +2,19 @@ from pysmiles.read_smiles import _tokenize, TokenType
 import re
 import numpy as np
 
+_ENCODERS = dict()
+
+
+def get_encoder(ID):
+    return _ENCODERS[ID]
+
+
 class Encoder:
+    ID = None
+
+    def __init__(self):
+        _ENCODERS[self.ID] = self.__class__
+
     @property
     def shape(self):
         raise NotImplementedError

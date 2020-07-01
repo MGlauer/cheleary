@@ -65,11 +65,3 @@ class Classifier(LearningTask):
                 result = next(stream)
                 if kind=="train":
                     yield result[1][2], result[1][3:]
-
-
-task = Classifier(
-    #input_encoder=encode.CharacterOrdEncoder(),
-    input_encoder=encode.SmilesAtomEncoder(),
-    output_encoder=encode.IntEncoder())
-
-task.run()

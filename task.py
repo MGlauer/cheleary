@@ -7,13 +7,25 @@ from encode import Encoder
 import numpy as np
 from time import time
 
+_TASKS = dict()
+
+
+def get_task(ID):
+    return _TASKS[ID]
+
+
 class LearningTask:
-    ID = 'classifier'
+    ID = None
 
     def __init__(self, input_encoder:Encoder = None, output_encoder:Encoder = None, model=None, model_path=None, data_path=None, batch_size=1, split=0.7):
+        assert self.ID is not None, "This class does not have an ID"
+        _TASKS[self.ID] = self.__class__
+
         self.input_encoder = input_encoder
         self.output_encoder = output_encoder
         self.batch_size = batch_size
+
+
 
         if model_path is None:
             self.model_path = f'models/{self.ID}/{time()}'
@@ -81,6 +93,14 @@ class LearningTask:
             for y1, y2 in zip(y_pred, y):
                 print(y1, y2)
 
+    def train_model(self, training_data):
+        self.model.summary()
+        for x_batch, y_batch in training_data:
+            for x, y in zip(x_batch, y_batch):
+                y_pred = self.model.predict(x)
+                print(y_pred, y)
+
+
     def load_model(self):
 
         if os.path.exists(self.model_path):
@@ -91,9 +111,17 @@ class LearningTask:
             self.model = self.create_model()
 
     def run(self):
-        dataset= self.load_data()
+        dataset = self.load_data()
         print("Start training")
         self.train_model(
+            dataset,
+            test_data=None
+        )
+
+    def test(self):
+        dataset = self.load_data()
+        print("Start training")
+        self.test_model(
             dataset,
             test_data=None
         )

@@ -79,10 +79,3 @@ class Autoencoder(LearningTask):
                     x = [result[0]]
                     y = [result[1]]
                     last_len = len(result[0])
-
-
-
-
-
-task = Autoencoder()
-task.run()
