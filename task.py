@@ -87,14 +87,13 @@ class LearningTask:
             self.model.save(self.model_path)
 
     def test_model(self, training_data):
-        self.model.test_on_batch(training_data)
         mse_total = 0
         counter = 0
         self.model.summary()
         for x_batch, y_batch in training_data:
             y_pred_batch = self.model.predict(x_batch)
             for y_real, y_pred in zip(y_batch, y_pred_batch):
-                print(y_pred[:], y_real)
+                print(list(zip(y_pred[:], y_real)))
                 counter += 1
                 mse = np.dot((y_pred[:] - y_real), (y_pred[:] - y_real))/len(y_real)
                 mse_total += mse
