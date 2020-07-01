@@ -1,4 +1,3 @@
-from config import EPOCHS
 import os
 import pickle
 from random import shuffle
@@ -65,13 +64,13 @@ class LearningTask:
     def create_model(self):
         raise NotImplementedError
 
-    def generate_data(self, kind="train"):
+    def generate_data(self, kind="train", loop=False):
         raise NotImplementedError
 
     def load_data(self, kind="train"):
         in_batch = []
         out_batch = []
-        for x, y in self.generate_data(kind=kind):
+        for x, y in self.generate_data(kind=kind, loop=(kind=="train")):
             in_batch.append(self.input_encoder.run(x))
             out_batch.append(self.output_encoder.run(y))
             if len(in_batch) >= self.batch_size:
@@ -80,7 +79,7 @@ class LearningTask:
                 out_batch = []
 
     def train_model(self, training_data, save_model=True,
-                    epochs=EPOCHS):
+                    epochs=1):
         self.model.summary()
         self.model.fit(training_data, epochs=epochs, steps_per_epoch=self.steps_per_epoch)
 
@@ -88,6 +87,7 @@ class LearningTask:
             self.model.save(self.model_path)
 
     def test_model(self, training_data):
+        self.model.test_on_batch(training_data)
         mse_total = 0
         counter = 0
         self.model.summary()
@@ -112,11 +112,12 @@ class LearningTask:
             print("No model found - create a new one")
             self.model = self.create_model()
 
-    def run(self):
-        dataset = self.load_data()
+    def run(self, epochs=1):
+        dataset = self.load_data(kind="train")
         print("Start training")
         self.train_model(
             dataset,
+            epochs=epochs
         )
 
     def test(self):

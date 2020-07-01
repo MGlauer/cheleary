@@ -8,12 +8,14 @@ cli = click.Group()
 @click.argument("task_id", required=True)
 @click.argument("input_encoder_id", required=True)
 @click.argument("output_encoder_id", required=True)
-def train(task_id, input_encoder_id, output_encoder_id):
+@click.option("--model-path", default=None)
+@click.option("--epochs", default=1)
+def train(task_id, input_encoder_id, output_encoder_id, model_path, epochs):
     task_cls = get_task(task_id)
     input_encoder_cls = get_encoder(input_encoder_id)
     output_encoder_cls = get_encoder(output_encoder_id)
-    t = task_cls(input_encoder_cls(), output_encoder_cls())
-    t.run()
+    t = task_cls(input_encoder=input_encoder_cls(), output_encoder=output_encoder_cls(), model_path=model_path)
+    t.run(epochs=epochs)
 
 @cli.command("test")
 @click.argument("task_id", required=True)
