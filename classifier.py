@@ -60,28 +60,26 @@ class Classifier(LearningTask):
             chemdata = pickle.load(output)
 
         #with mp.Pool(mp.cpu_count() - 2) as pool:
-        while True:
-            if LOCAL_SIZE_RESTRICTION != -1:
-                stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
-            else:
-                l = list(chemdata.iterrows())
-                random.shuffle(l)
-                stream = (x for x in l)
-            for i in range(self.steps_per_epoch):
+        if LOCAL_SIZE_RESTRICTION != -1:
+            stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
+        else:
+            l = list(chemdata.iterrows())
+            random.shuffle(l)
+            stream = (x for x in l)
+        for i in range(self.steps_per_epoch):
+            result = next(stream)
+            if kind=="train":
+                yield result[1][2], result[1][3:]
+        if kind in ("test", "eval"):
+            for i in range(self.test_amount):
                 result = next(stream)
-                if kind=="train":
+                if kind == "test":
                     yield result[1][2], result[1][3:]
-            if kind in ("test", "eval"):
-                for i in range(self.test_amount):
-                    result = next(stream)
-                    if kind == "test":
-                        yield result[1][2], result[1][3:]
-            if kind == "eval":
-                for i in range(self.test_amount):
-                    result = next(stream)
-                    if kind == "eval":
-                        yield result[1][2], result[1][3:]
-            if not loop:
-                break
+        if kind == "eval":
+            for i in range(self.test_amount):
+                result = next(stream)
+                if kind == "eval":
+                    yield result[1][2], result[1][3:]
+
 
 register(Classifier)

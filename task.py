@@ -67,7 +67,7 @@ class LearningTask:
     def create_model(self):
         raise NotImplementedError
 
-    def generate_data(self, kind="train", loop=False):
+    def generate_data(self, kind="train"):
         raise NotImplementedError
 
     def load_data(self, kind="train", cached=True):
@@ -77,21 +77,25 @@ class LearningTask:
                 os.makedirs(self.data_path, exist_ok=True)
                 for method in ("train", "test", "eval"):
                     with open(os.path.join(self.data_path, f"{method}.pkl"), "wb") as pkl:
-                        l = list(self.generate_data(kind=method, loop=False))
+                        l = list(self.generate_data(kind=method))
                         pickle.dump(l, pkl)
             with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
                 data = pickle.load(pkl)
         else:
-            data = self.generate_data(kind=kind, loop=(kind=="train"))
-        in_batch = []
-        out_batch = []
-        for x, y in data:
-            in_batch.append(self.input_encoder.run(x))
-            out_batch.append(self.output_encoder.run(y))
-            if len(in_batch) >= self.batch_size:
-                yield np.asarray(in_batch), np.asarray(out_batch)
-                in_batch = []
-                out_batch = []
+            data = self.generate_data(kind=kind)
+        data = list(data)
+        while True:
+            in_batch = []
+            out_batch = []
+            for x, y in data:
+                in_batch.append(self.input_encoder.run(x))
+                out_batch.append(self.output_encoder.run(y))
+                if len(in_batch) >= self.batch_size:
+                    yield np.asarray(in_batch), np.asarray(out_batch)
+                    in_batch = []
+                    out_batch = []
+            if kind == "train":
+                break
 
     def train_model(self, training_data, save_model=True,
                     epochs=1):
