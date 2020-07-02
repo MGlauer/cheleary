@@ -69,10 +69,22 @@ class LearningTask:
     def generate_data(self, kind="train", loop=False):
         raise NotImplementedError
 
-    def load_data(self, kind="train"):
+    def load_data(self, kind="train", cached=True):
+        if cached:
+            if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
+                print("No cached data found. Create new cache.")
+                os.makedirs(self.data_path, exist_ok=True)
+                for method in ("train", "test", "eval"):
+                    with open(os.path.join(self.data_path, f"{method}.pkl"), "wb") as pkl:
+                        l = list(self.generate_data(kind=method, loop=False))
+                        pickle.dump(l, pkl)
+            with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
+                data = pickle.load(pkl)
+        else:
+            data = self.generate_data(kind=kind, loop=(kind=="train"))
         in_batch = []
         out_batch = []
-        for x, y in self.generate_data(kind=kind, loop=(kind=="train")):
+        for x, y in data:
             in_batch.append(self.input_encoder.run(x))
             out_batch.append(self.output_encoder.run(y))
             if len(in_batch) >= self.batch_size:
