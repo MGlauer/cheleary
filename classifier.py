@@ -63,9 +63,7 @@ class Classifier(LearningTask):
         if LOCAL_SIZE_RESTRICTION != -1:
             stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
         else:
-            l = list(chemdata.iterrows())
-            random.shuffle(l)
-            stream = (x for x in l)
+            stream = chemdata.iterrows()
         for i in range(self.steps_per_epoch):
             result = next(stream)
             if kind=="train":
