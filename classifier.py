@@ -43,7 +43,7 @@ class Classifier(LearningTask):
 
     def create_model(self):
         tf.executing_eagerly()
-        loss = tf.keras.losses.BinaryCrossentropy()
+        loss = tf.keras.losses.CategoricalCrossentropy()
 
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.Embedding(300, 100, input_shape=(None,), name="inputs"))
