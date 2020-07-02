@@ -4,9 +4,10 @@ from random import shuffle
 import tensorflow as tf
 from encode import Encoder
 import numpy as np
-from time import time
+from datetime import datetime
 
 tf.config.set_soft_device_placement(True)
+
 
 _TASKS = dict()
 
@@ -30,12 +31,12 @@ class LearningTask:
 
 
         if model_path is None:
-            self.model_path = f'models/{self.ID}/{time()}'
+            self.model_path = f'store/{self.ID}/models/{datetime.now().timestamp()}'
         else:
             self.model_path = model_path
         self.split = split
         if data_path is None:
-            self.data_path = f'data/{self.ID}/split_{split*100}'
+            self.data_path = f'store/data/split_{split*100}'
         else:
             self.data_path = data_path
         if model is None:
