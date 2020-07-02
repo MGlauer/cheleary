@@ -50,7 +50,7 @@ class Classifier(LearningTask):
         forward = tf.keras.layers.LSTM(1000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
         model.add(forward)
         model.add(tf.keras.layers.Dense(500, activation=tf.keras.activations.sigmoid, use_bias=True, name="outputs"))
-        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.5), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
+        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.01), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
         print(model.losses)
         return model
 
@@ -64,20 +64,8 @@ class Classifier(LearningTask):
             stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
         else:
             stream = chemdata.iterrows()
-        for i in range(self.steps_per_epoch):
-            result = next(stream)
-            if kind=="train":
-                yield result[1][2], result[1][0]
-        if kind in ("test", "eval"):
-            for i in range(self.test_amount):
-                result = next(stream)
-                if kind == "test":
-                    yield result[1][2], result[1][0]
-        if kind == "eval":
-            for i in range(self.test_amount):
-                result = next(stream)
-                if kind == "eval":
-                    yield result[1][2], result[1][0]
+        for result in stream:
+            yield result[1][2], result[1][0]
 
 
 register(Classifier)

@@ -1,5 +1,6 @@
 import os
 import pickle
+from config import LOCAL_SIZE_RESTRICTION
 from random import shuffle
 import tensorflow as tf
 from encode import Encoder
@@ -71,38 +72,29 @@ class LearningTask:
         raise NotImplementedError
 
     def load_data(self, kind="train", cached=True):
-        if cached:
-            if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
-                print("No cached data found. Create new cache.")
-                os.makedirs(self.data_path, exist_ok=True)
-                for method in ("train", "test", "eval"):
-                    with open(os.path.join(self.data_path, f"{method}.pkl"), "wb") as pkl:
-                        l = list(self.generate_data(kind=method))
-                        pickle.dump(l, pkl)
-            with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
-                data = pickle.load(pkl)
-        else:
-            data = self.generate_data(kind=kind)
-        data = list(data)
-        while True:
-            in_batch = []
-            out_batch = []
-            for x, y in data:
-                in_batch.append(self.input_encoder.run(x))
-                out_batch.append(self.output_encoder.run(y))
-                if len(in_batch) >= self.batch_size:
-                    yield np.asarray(in_batch), np.asarray(out_batch)
-                    in_batch = []
-                    out_batch = []
-            if in_batch:
-                yield np.asarray(in_batch), np.asarray(out_batch)
-            if not(kind == "train"):
-                break
+        if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
+            print("No cached data found. Create new cache.")
+            os.makedirs(self.data_path, exist_ok=True)
+            data = list(self.generate_data())[:LOCAL_SIZE_RESTRICTION]
+            shuffle(data)
+            train_amount = int(len(data) * self.training_ratio)
+            test_amount = int(len(data) * (1 - self.training_ratio) / 2)
+            eval_amount = len(data) - (self.steps_per_epoch + test_amount)
+            for _kind, l, r in [("train", 0,train_amount),
+                         ("test", train_amount, train_amount+test_amount),
+                         ("eval",train_amount+test_amount,-1)]:
+                with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
+                    pickle.dump([(np.asarray([self.input_encoder.run(x)]), np.asarray([self.output_encoder.run(y)])) for x,y in data[l:r]], pkl)
+        with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
+            data = pickle.load(pkl)
+            while True:
+                for x,y in data:
+                    yield x, y
 
-    def train_model(self, training_data, save_model=True,
+    def train_model(self, data, save_model=True,
                     epochs=1):
         self.model.summary()
-        self.model.fit(training_data, epochs=epochs, steps_per_epoch=self.steps_per_epoch)
+        self.model.fit(data, epochs=epochs, shuffle=True, steps_per_epoch=self.steps_per_epoch)
 
         if save_model:
             self.model.save(self.model_path)
