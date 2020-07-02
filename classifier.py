@@ -50,7 +50,7 @@ class Classifier(LearningTask):
         forward = tf.keras.layers.LSTM(1000, activation=tf.keras.activations.tanh, recurrent_activation=tf.keras.activations.sigmoid, name="forward", recurrent_dropout=0, unroll=False, use_bias=True)
         model.add(forward)
         model.add(tf.keras.layers.Dense(1024, activation=tf.keras.activations.sigmoid, use_bias=True, name="outputs"))
-        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.1), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
+        model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.5), loss=loss, metrics=["mae", "acc", "binary_crossentropy"])
         print(model.losses)
         return model
 
