@@ -5,6 +5,7 @@ from task import LearningTask, register
 import encode
 from config import LOCAL_SIZE_RESTRICTION
 import numpy as np
+import random
 
 class Classifier(LearningTask):
     ID = 'classifier'
@@ -63,7 +64,7 @@ class Classifier(LearningTask):
             if LOCAL_SIZE_RESTRICTION != -1:
                 stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
             else:
-                stream = chemdata.iterrows()
+                stream = random.shuffle(list(chemdata.iterrows()))
             for i in range(self.steps_per_epoch):
                 result = next(stream)
                 if kind=="train":
