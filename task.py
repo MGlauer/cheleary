@@ -6,6 +6,8 @@ from encode import Encoder
 import numpy as np
 from time import time
 
+tf.config.set_soft_device_placement(True)
+
 _TASKS = dict()
 
 
@@ -90,14 +92,16 @@ class LearningTask:
         mse_total = 0
         counter = 0
         self.model.summary()
-        for x_batch, y_batch in training_data:
-            y_pred_batch = self.model.predict(x_batch)
-            for y_real, y_pred in zip(y_batch, y_pred_batch):
-                print(list(zip(y_pred[:], y_real)))
-                counter += 1
-                mse = np.dot((y_pred[:] - y_real), (y_pred[:] - y_real))/len(y_real)
-                mse_total += mse
-                print(mse)
+        with open(".log/tests.csv","w") as fout:
+            for x_batch, y_batch in training_data:
+                y_pred_batch = self.model.predict(x_batch)
+                for y_real, y_pred in zip(y_batch, y_pred_batch):
+                    fout.write(",".join(map(str,y_pred[:]))+"\n")
+                    fout.write(",".join(map(str,y_real))+"\n")
+                    counter += 1
+                    mse = np.dot((y_pred[:] - y_real), (y_pred[:] - y_real))/len(y_real)
+                    mse_total += mse
+                    print(mse)
         print(mse_total/counter)
 
 

@@ -21,7 +21,7 @@ class Classifier(LearningTask):
 
             self.total_data = sum(1 for _ in stream)
             self.steps_per_epoch = int(self.total_data*self.training_ratio)
-            self.test_amount = int(self.total_data*self.training_ratio/2)
+            self.test_amount = int(self.total_data*(1-self.training_ratio)/2)
             self.eval_amount = self.total_data - (self.steps_per_epoch + self.test_amount)
 
     @property
