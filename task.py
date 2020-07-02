@@ -31,7 +31,7 @@ class LearningTask:
 
 
         if model_path is None:
-            self.model_path = f'store/{self.ID}/models/{datetime.now().timestamp()}'
+            self.model_path = f'store/{self.ID}/models/{datetime.now().strftime("%Y%m%d")}'
         else:
             self.model_path = model_path
         self.split = split
