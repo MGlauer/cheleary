@@ -94,6 +94,8 @@ class LearningTask:
                     yield np.asarray(in_batch), np.asarray(out_batch)
                     in_batch = []
                     out_batch = []
+            if in_batch:
+                yield np.asarray(in_batch), np.asarray(out_batch)
             if not(kind == "train"):
                 break
 
