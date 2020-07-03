@@ -71,7 +71,7 @@ class LearningTask:
     def generate_data(self, kind="train"):
         raise NotImplementedError
 
-    def load_data(self, kind="train", cached=True):
+    def load_data(self, kind="train", loop=False, cached=True):
         if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
             print("No cached data found. Create new cache.")
             os.makedirs(self.data_path, exist_ok=True)
@@ -88,8 +88,11 @@ class LearningTask:
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
             data = pickle.load(pkl)
             while True:
-                for x,y in data:
+                for x, y in data:
                     yield x, y
+                if not loop:
+                    break
+
 
     def train_model(self, data, save_model=True,
                     epochs=1):
@@ -127,7 +130,7 @@ class LearningTask:
             self.model = self.create_model()
 
     def run(self, epochs=1):
-        dataset = self.load_data(kind="train")
+        dataset = self.load_data(kind="train", loop=True)
         print("Start training")
         self.train_model(
             dataset,
