@@ -1,30 +1,62 @@
 import click
-from task import get_task
-import classifier
-from encode import get_encoder
+from task import LearningTask, load_task
+from encode import Encoder
+from dataprocessor import DataProcessor
+from models import Model
+from chebidblite.learnhelper import ChebiDataPreparer
+import pickle
+import os
+
 cli = click.Group()
+
 
 @cli.command("train")
 @click.argument("task_id", required=True)
 @click.argument("input_encoder_id", required=True)
 @click.argument("output_encoder_id", required=True)
-@click.option("--model-path", default=None)
+@click.option("--raw-data", default=None)
+@click.option("--data", default=None)
+@click.option("--model", default=None)
 @click.option("--epochs", default=1)
-def train(task_id, input_encoder_id, output_encoder_id, model_path, epochs):
-    task_cls = get_task(task_id)
-    input_encoder_cls = get_encoder(input_encoder_id)
-    output_encoder_cls = get_encoder(output_encoder_id)
-    t = task_cls(input_encoder=input_encoder_cls(), output_encoder=output_encoder_cls(), model_path=model_path)
+def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
+    if os.path.exists(os.path.join(".tasks", task_id)):
+        print(
+            "Task already exists. If you want to continue learning, specify use the `continue` instead of `train`."
+        )
+        exit(1)
+    input_encoder = Encoder.get(input_encoder_id)()
+    output_encoder = Encoder.get(output_encoder_id)()
+    dp = DataProcessor(
+        raw_data_path=raw_data,
+        data_path=data,
+        input_encoder=input_encoder,
+        output_encoder=output_encoder,
+    )
+    t = LearningTask(
+        identifier=task_id, dataprocessor=dp, model=Model.get(model)().build()
+    )
     t.run(epochs=epochs)
+
+
+@cli.command("continue")
+@click.argument("task_id", required=True)
+@click.option("--epochs", default=1)
+def cont(task_id, epochs):
+    t = load_task(task_id)
+    t.run(epochs=epochs)
+
 
 @cli.command("test")
 @click.argument("task_id", required=True)
-@click.argument("input_encoder_id", required=True)
-@click.argument("output_encoder_id", required=True)
-@click.option("--model-path", default=None)
-def test(task_id, model_path, input_encoder_id, output_encoder_id):
-    task_cls = get_task(task_id)
-    input_encoder_cls = get_encoder(input_encoder_id)
-    output_encoder_cls = get_encoder(output_encoder_id)
-    t = task_cls(input_encoder=input_encoder_cls(), output_encoder=output_encoder_cls(), model_path=model_path)
+def test(task_id):
+    t = load_task(task_id)
     t.test()
+
+
+@cli.command("collect-dl-data")
+@click.argument("path", required=True)
+def collect_dl_data(path):
+    dprep = ChebiDataPreparer()
+    chemdata = dprep.getDataForDeepLearning(100, 500)
+    with open(path, "wb") as outf:
+        pickle.dump(chemdata, outf)
