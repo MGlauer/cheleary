@@ -30,6 +30,8 @@ class DataProcessor:
         self.input_encoder = input_encoder
         self.output_encoder = output_encoder
 
+        self.length = int(sum(1 for _ in self.generate_data())*self.split)
+
     @property
     def input_shape(self):
         raise NotImplementedError
