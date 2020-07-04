@@ -35,7 +35,7 @@ class LearningTask:
 
     def train_model(self, data, save_model=True, epochs=1):
         self.model.summary()
-        self.model.fit(data, epochs=epochs, shuffle=True)
+        self.model.fit(data, epochs=epochs, shuffle=True, verbose=2)
 
     def save(self):
         path = os.path.join(".tasks", self.identifier)
