@@ -59,7 +59,7 @@ class DataProcessor:
         else:
             stream = chemdata.iterrows()
         for result in stream:
-            yield result[1][2], result[1][0]
+            yield result[1][1], result[1][2:]
 
     def load_data(self, kind="train", loop=False, cached=True):
         if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
