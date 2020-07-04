@@ -33,9 +33,10 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
         output_encoder=output_encoder,
     )
     t = LearningTask(
-        identifier=task_id, dataprocessor=dp, model=Model.get(model)().build()
+        identifier=task_id, dataprocessor=dp, model_container=Model.get(model)()
     )
     t.run(epochs=epochs)
+    t.save()
 
 
 @cli.command("continue")
@@ -44,6 +45,7 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
 def cont(task_id, epochs):
     t = load_task(task_id)
     t.run(epochs=epochs)
+    t.save()
 
 
 @cli.command("test")
@@ -56,7 +58,9 @@ def test(task_id):
 @cli.command("collect-dl-data")
 @click.argument("path", required=True)
 def collect_dl_data(path):
+    print(path)
+    print(os.getcwd())
     dprep = ChebiDataPreparer()
-    chemdata = dprep.getDataForDeepLearning(100, 500)
+    chemdata = dprep.getDataForDeepLearning(10, 50)
     with open(path, "wb") as outf:
         pickle.dump(chemdata, outf)

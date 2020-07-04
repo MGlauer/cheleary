@@ -12,7 +12,7 @@ class LearningTask:
         self,
         identifier,
         dataprocessor: DataProcessor,
-        model,
+        model_container,
         batch_size=1,
         split=0.7,
         version=1,
@@ -22,7 +22,8 @@ class LearningTask:
 
         self.dataprocessor = dataprocessor
 
-        self.model = model
+        self.model_container = model_container
+        self.model = model_container.build()
 
         self.batch_size = batch_size
 
@@ -38,9 +39,12 @@ class LearningTask:
         self.model.fit(data, epochs=epochs, shuffle=True, verbose=2, steps_per_epoch=self.dataprocessor.length)
 
     def save(self):
+        print("Save model")
         path = os.path.join(".tasks", self.identifier)
         model_path = os.path.join(path, "model", f"v{self.version}")
         self.model.save(model_path)
+        with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
+            json.dump(self.config, f)
 
     def test_model(self, training_data):
         mse_total = 0
@@ -77,7 +81,7 @@ class LearningTask:
             version=self.version,
             data_path=self.dataprocessor.data_path,
             input_encoder=self.dataprocessor.input_encoder._ID,
-            model=self.model._ID,
+            model=self.model_container._ID,
             output_encoder=self.dataprocessor.output_encoder._ID,
         )
 
