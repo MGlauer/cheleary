@@ -3,7 +3,6 @@ from task import LearningTask, load_task
 from encode import Encoder
 from dataprocessor import DataProcessor
 from models import Model
-from chebidblite.learnhelper import ChebiDataPreparer
 import pickle
 import os
 
@@ -54,13 +53,19 @@ def test(task_id):
     t = load_task(task_id)
     t.test()
 
+try:
+    from chebidblite.learnhelper import ChebiDataPreparer
+except ModuleNotFoundError:
+    print("`ChebiDataPreparer` could not be loaded. Related commands are not available.")
+else:
+    @cli.command("collect-dl-data")
+    @click.argument("path", required=True)
+    def collect_dl_data(path):
+        # Move this import here because it is not available everywhere
 
-@cli.command("collect-dl-data")
-@click.argument("path", required=True)
-def collect_dl_data(path):
-    print(path)
-    print(os.getcwd())
-    dprep = ChebiDataPreparer()
-    chemdata = dprep.getDataForDeepLearning(10, 50)
-    with open(path, "wb") as outf:
-        pickle.dump(chemdata, outf)
+        print(path)
+        print(os.getcwd())
+        dprep = ChebiDataPreparer()
+        chemdata = dprep.getDataForDeepLearning(10, 50)
+        with open(path, "wb") as outf:
+            pickle.dump(chemdata, outf)
