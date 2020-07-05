@@ -33,25 +33,34 @@ class LearningTask:
         self.version = version
 
         if load_model:
-            self.model = tf.keras.models.load_model(self.model_path)
+            self.model = tf.keras.models.load_model(self._model_path)
         else:
             self.model = model_container.build()
 
     def create_model(self):
         raise NotImplementedError
 
-    def train_model(self, data, save_model=True, epochs=1):
+    def train_model(self, data, epochs=1):
         self.model.summary()
-        self.model.fit(data, epochs=epochs, shuffle=True, verbose=2, steps_per_epoch=self.dataprocessor.length)
+        os.makedirs(self._version_root, exist_ok=True)
+        log_callback = tf.keras.callbacks.CSVLogger(self._train_log_path)
+        self.model.fit(data, epochs=epochs, shuffle=True, callbacks=[log_callback], verbose=2, steps_per_epoch=self.dataprocessor.length)
 
     @property
-    def model_path(self):
-        path = os.path.join(".tasks", self.identifier)
-        return os.path.join(path, "model", f"v{self.version}")
+    def _version_root(self):
+        return os.path.join(".tasks", self.identifier, f"v{self.version}")
+
+    @property
+    def _train_log_path(self):
+        return os.path.join(self._version_root, "training.log")
+
+    @property
+    def _model_path(self):
+        return os.path.join(self._version_root, "model")
 
     def save(self):
         print("Save model")
-        self.model.save(self.model_path)
+        self.model.save(self._model_path)
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
@@ -74,11 +83,11 @@ class LearningTask:
         print(mse_total / counter)
 
     def run(self, epochs=1):
+        self.version += 1
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
         print("Start training")
         self.train_model(dataset, epochs=epochs)
         print("Stop training")
-        self.version += 1
 
     def test(self):
         dataset = self.dataprocessor.load_data(kind="test")
