@@ -12,10 +12,11 @@ class LearningTask:
         self,
         identifier,
         dataprocessor: DataProcessor,
-        model_container,
+        model_container: Model,
         batch_size=1,
         split=0.7,
         version=1,
+        load_model=False,
     ):
 
         self.identifier = identifier
@@ -23,13 +24,18 @@ class LearningTask:
         self.dataprocessor = dataprocessor
 
         self.model_container = model_container
-        self.model = model_container.build()
+
 
         self.batch_size = batch_size
 
         self.split = split
 
         self.version = version
+
+        if load_model:
+            self.model = tf.keras.models.load_model(self.model_path)
+        else:
+            self.model = model_container.build()
 
     def create_model(self):
         raise NotImplementedError
@@ -38,11 +44,14 @@ class LearningTask:
         self.model.summary()
         self.model.fit(data, epochs=epochs, shuffle=True, verbose=2, steps_per_epoch=self.dataprocessor.length)
 
+    @property
+    def model_path(self):
+        path = os.path.join(".tasks", self.identifier)
+        return os.path.join(path, "model", f"v{self.version}")
+
     def save(self):
         print("Save model")
-        path = os.path.join(".tasks", self.identifier)
-        model_path = os.path.join(path, "model", f"v{self.version}")
-        self.model.save(model_path)
+        self.model.save(self.model_path)
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
@@ -68,6 +77,8 @@ class LearningTask:
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
         print("Start training")
         self.train_model(dataset, epochs=epochs)
+        print("Stop training")
+        self.version += 1
 
     def test(self):
         dataset = self.dataprocessor.load_data(kind="test")
@@ -90,14 +101,15 @@ class LearningTask:
 
 
 def load_task(identifier):
-    config = json.load(os.path.join(".tasks", identifier, "config.json"))
-    return load_from_strings(*config)
+    with open(os.path.join(".tasks", identifier, "config.json")) as fin:
+        config = json.load(fin)
+    return load_from_strings(**config)
 
 
-def load_from_strings(identifier, data_path, input_encoder, model, output_encoder):
-    idenifier = identifier
+def load_from_strings(identifier, data_path, input_encoder, model, output_encoder, version=1):
     ie = Encoder.get(input_encoder)()
-    model = Model.get(model)
+    model_container = Model.get(model)()
+    model_container = Model.get(model)()
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
-    return LearningTask(identifier=identifier, dataprocessor=dp, model=model)
+    return LearningTask(identifier=identifier, dataprocessor=dp, model_container=model_container, version=version)

@@ -29,8 +29,8 @@ class DataProcessor:
         self.raw_data_path = raw_data_path
         self.input_encoder = input_encoder
         self.output_encoder = output_encoder
+        self.length = int(sum(1 for _ in self.load_data(kind="train")))
 
-        self.length = int(sum(1 for _ in self.generate_data())*self.split)
 
     @property
     def input_shape(self):
