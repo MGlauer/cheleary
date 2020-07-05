@@ -15,7 +15,8 @@ class LearningTask:
         model_container: Model,
         batch_size=1,
         split=0.7,
-        version=1,
+        version=0,
+        prev_epochs=None,
         load_model=False,
     ):
 
@@ -37,10 +38,16 @@ class LearningTask:
         else:
             self.model = model_container.build()
 
+        if prev_epochs is None:
+            self._prev_epochs = []
+        else:
+            self._prev_epochs = prev_epochs
+
     def create_model(self):
         raise NotImplementedError
 
     def train_model(self, data, epochs=1):
+        self._prev_epochs.append(epochs)
         self.model.summary()
         os.makedirs(self._version_root, exist_ok=True)
         log_callback = tf.keras.callbacks.CSVLogger(self._train_log_path)
@@ -103,6 +110,7 @@ class LearningTask:
             input_encoder=self.dataprocessor.input_encoder._ID,
             model=self.model_container._ID,
             output_encoder=self.dataprocessor.output_encoder._ID,
+            epochs=self._prev_epochs
         )
 
     def __repr__(self):
@@ -115,10 +123,9 @@ def load_task(identifier):
     return load_from_strings(**config)
 
 
-def load_from_strings(identifier, data_path, input_encoder, model, output_encoder, version=1):
+def load_from_strings(identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None):
     ie = Encoder.get(input_encoder)()
-    model_container = Model.get(model)()
     model_container = Model.get(model)()
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
-    return LearningTask(identifier=identifier, dataprocessor=dp, model_container=model_container, version=version)
+    return LearningTask(identifier=identifier, dataprocessor=dp, model_container=model_container, version=version, prev_epochs=epochs)
