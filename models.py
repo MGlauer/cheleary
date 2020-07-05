@@ -36,6 +36,13 @@ class LSTMClassifierModel(Model):
         model.add(forward)
         model.add(
             tf.keras.layers.Dense(
+                10000,
+                use_bias=True,
+                name="outputs",
+            )
+        )
+        model.add(
+            tf.keras.layers.Dense(
                 output_size,
                 use_bias=True,
                 name="outputs",
