@@ -16,7 +16,7 @@ class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
     def build(self, input_size=300, output_size=500, learning_rate=0.001):
-        loss = tf.keras.losses.CategoricalCrossentropy()
+        loss = tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
         model.add(
@@ -37,7 +37,6 @@ class LSTMClassifierModel(Model):
         model.add(
             tf.keras.layers.Dense(
                 output_size,
-                activation=tf.keras.activations.sigmoid,
                 use_bias=True,
                 name="outputs",
             )
