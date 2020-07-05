@@ -46,12 +46,12 @@ class LearningTask:
     def create_model(self):
         raise NotImplementedError
 
-    def train_model(self, data, epochs=1):
+    def train_model(self, data, test_data=None, epochs=1):
         self._prev_epochs.append(epochs)
         self.model.summary()
         os.makedirs(self._version_root, exist_ok=True)
         log_callback = tf.keras.callbacks.CSVLogger(self._train_log_path)
-        self.model.fit(data, epochs=epochs, shuffle=True, callbacks=[log_callback], verbose=2, steps_per_epoch=self.dataprocessor.length)
+        self.model.fit(data, epochs=epochs, shuffle=True, callbacks=[log_callback], verbose=2, steps_per_epoch=self.dataprocessor.length, validation_data=test_data)
 
     @property
     def _version_root(self):
@@ -92,8 +92,11 @@ class LearningTask:
     def run(self, epochs=1):
         self.version += 1
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
+        x_test, y_test = tuple(zip(*self.dataprocessor.load_data(kind="test")))
+        #x_test = [x for (x, _) in self.dataprocessor.load_data(kind="test")]
+        #y_test = [y for (_, y) in self.dataprocessor.load_data(kind="test")]
         print("Start training")
-        self.train_model(dataset, epochs=epochs)
+        self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")
 
     def test(self):
