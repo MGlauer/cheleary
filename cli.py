@@ -53,11 +53,15 @@ def test(task_id):
     t = load_task(task_id)
     t.test()
 
+
 try:
     from chebidblite.learnhelper import ChebiDataPreparer
 except ModuleNotFoundError:
-    print("`ChebiDataPreparer` could not be loaded. Related commands are not available.")
+    print(
+        "`ChebiDataPreparer` could not be loaded. Related commands are not available."
+    )
 else:
+
     @cli.command("collect-dl-data")
     @click.argument("path", required=True)
     def collect_dl_data(path):

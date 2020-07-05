@@ -34,20 +34,8 @@ class LSTMClassifierModel(Model):
             use_bias=True,
         )
         model.add(forward)
-        model.add(
-            tf.keras.layers.Dense(
-                10000,
-                use_bias=True,
-                name="spread",
-            )
-        )
-        model.add(
-            tf.keras.layers.Dense(
-                output_size,
-                use_bias=True,
-                name="outputs",
-            )
-        )
+        model.add(tf.keras.layers.Dense(10000, use_bias=True, name="spread",))
+        model.add(tf.keras.layers.Dense(output_size, use_bias=True, name="outputs",))
         model.compile(
             optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
             loss=loss,

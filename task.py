@@ -26,7 +26,6 @@ class LearningTask:
 
         self.model_container = model_container
 
-
         self.batch_size = batch_size
 
         self.split = split
@@ -51,7 +50,15 @@ class LearningTask:
         self.model.summary()
         os.makedirs(self._version_root, exist_ok=True)
         log_callback = tf.keras.callbacks.CSVLogger(self._train_log_path)
-        self.model.fit(data, epochs=epochs, shuffle=True, callbacks=[log_callback], verbose=2, steps_per_epoch=self.dataprocessor.length, validation_data=test_data)
+        self.model.fit(
+            data,
+            epochs=epochs,
+            shuffle=True,
+            callbacks=[log_callback],
+            verbose=2,
+            steps_per_epoch=self.dataprocessor.length,
+            validation_data=test_data,
+        )
 
     @property
     def _version_root(self):
@@ -93,8 +100,8 @@ class LearningTask:
         self.version += 1
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
         x_test, y_test = tuple(zip(*self.dataprocessor.load_data(kind="test")))
-        #x_test = [x for (x, _) in self.dataprocessor.load_data(kind="test")]
-        #y_test = [y for (_, y) in self.dataprocessor.load_data(kind="test")]
+        # x_test = [x for (x, _) in self.dataprocessor.load_data(kind="test")]
+        # y_test = [y for (_, y) in self.dataprocessor.load_data(kind="test")]
         print("Start training")
         self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")
@@ -113,7 +120,7 @@ class LearningTask:
             input_encoder=self.dataprocessor.input_encoder._ID,
             model=self.model_container._ID,
             output_encoder=self.dataprocessor.output_encoder._ID,
-            epochs=self._prev_epochs
+            epochs=self._prev_epochs,
         )
 
     def __repr__(self):
@@ -126,9 +133,17 @@ def load_task(identifier):
     return load_from_strings(**config)
 
 
-def load_from_strings(identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None):
+def load_from_strings(
+    identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None
+):
     ie = Encoder.get(input_encoder)()
     model_container = Model.get(model)()
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
-    return LearningTask(identifier=identifier, dataprocessor=dp, model_container=model_container, version=version, prev_epochs=epochs)
+    return LearningTask(
+        identifier=identifier,
+        dataprocessor=dp,
+        model_container=model_container,
+        version=version,
+        prev_epochs=epochs,
+    )

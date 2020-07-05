@@ -31,7 +31,6 @@ class DataProcessor:
         self.output_encoder = output_encoder
         self.length = int(sum(1 for _ in self.load_data(kind="train")))
 
-
     @property
     def input_shape(self):
         raise NotImplementedError
