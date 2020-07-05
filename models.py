@@ -38,7 +38,7 @@ class LSTMClassifierModel(Model):
             tf.keras.layers.Dense(
                 10000,
                 use_bias=True,
-                name="outputs",
+                name="spread",
             )
         )
         model.add(
