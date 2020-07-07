@@ -1,5 +1,5 @@
 import tensorflow as tf
-from registry import Registerable
+from src.cheleary.registry import Registerable
 from tensorflow.python.ops import math_ops
 
 _MODELS = {}

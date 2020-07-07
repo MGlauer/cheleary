@@ -1,9 +1,8 @@
 import os
 import tensorflow as tf
-from dataprocessor import DataProcessor
-import models
-from models import Model
-from encode import Encoder
+from src.cheleary.dataprocessor import DataProcessor
+from src.cheleary.models import Model
+from src.cheleary.encode import Encoder
 import numpy as np
 import json
 
@@ -65,7 +64,7 @@ class LearningTask:
 
     @property
     def _version_root(self):
-        return os.path.join(".tasks", self.identifier, f"v{self.version}")
+        return os.path.join("../../.tasks", self.identifier, f"v{self.version}")
 
     @property
     def _train_log_path(self):
@@ -78,7 +77,7 @@ class LearningTask:
     def save(self):
         print("Save model")
         self.model.save(self._model_path)
-        with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
+        with open(os.path.join("../../.tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
     def test_model(self, training_data):
@@ -131,7 +130,7 @@ class LearningTask:
 
 
 def load_task(identifier):
-    with open(os.path.join(".tasks", identifier, "config.json")) as fin:
+    with open(os.path.join("../../.tasks", identifier, "config.json")) as fin:
         config = json.load(fin)
     return load_from_strings(**config, load_model=True)
 

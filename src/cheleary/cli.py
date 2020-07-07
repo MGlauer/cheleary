@@ -1,8 +1,8 @@
 import click
-from task import LearningTask, load_task
-from encode import Encoder
-from dataprocessor import DataProcessor
-from models import Model
+from src.cheleary.task import LearningTask, load_task
+from src.cheleary.encode import Encoder
+from src.cheleary.dataprocessor import DataProcessor
+from src.cheleary.models import Model
 import pickle
 import os
 
@@ -18,7 +18,7 @@ cli = click.Group()
 @click.option("--model", default=None)
 @click.option("--epochs", default=1)
 def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
-    if os.path.exists(os.path.join(".tasks", task_id)):
+    if os.path.exists(os.path.join("../../.tasks", task_id)):
         print(
             "Task already exists. If you want to continue learning, specify use the `continue` instead of `train`."
         )
