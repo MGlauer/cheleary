@@ -9,14 +9,24 @@ import os
 cli = click.Group()
 
 
-@cli.command("train")
+@cli.command(
+    "train",
+    help="Contstruct and train a new task. The .tasks folder must "
+    "not contain a task with the same `TASK_ID`. If you want to continue"
+    "the training of an existing model, use `cheleary continue` instead. Input data is encoded"
+    "using the encoder identified by `INPUT_ENCODER_ID` and the targets by `OUTPUT_ENCODER_ID`.",
+)
 @click.argument("task_id", required=True)
 @click.argument("input_encoder_id", required=True)
 @click.argument("output_encoder_id", required=True)
-@click.option("--raw-data", default=None)
-@click.option("--data", default=None)
-@click.option("--model", default=None)
-@click.option("--epochs", default=1)
+@click.option(
+    "--raw-data",
+    default=None,
+    help="Path to a raw dataset that should be used for this learning task. Cheleary will try to",
+)
+@click.option("--data", default=None, help="Path to a data dump created by cheleary")
+@click.option("--model", default=None, help="Identifier for the model to use")
+@click.option("--epochs", default=1, help="Number of epochs to train")
 def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
     if os.path.exists(os.path.join("../../.tasks", task_id)):
         print(
@@ -38,7 +48,7 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
     t.save()
 
 
-@cli.command("continue")
+@cli.command("continue", help="Load existing task and continue training.")
 @click.argument("task_id", required=True)
 @click.option("--epochs", default=1)
 def cont(task_id, epochs):
@@ -47,7 +57,7 @@ def cont(task_id, epochs):
     t.save()
 
 
-@cli.command("test")
+@cli.command("test", help="Load existing task and run tests with cached test data.")
 @click.argument("task_id", required=True)
 def test(task_id):
     t = load_task(task_id)
@@ -62,7 +72,11 @@ except ModuleNotFoundError:
     )
 else:
 
-    @cli.command("collect-dl-data")
+    @cli.command(
+        "collect-dl-data",
+        help="Command line interface for ChebiDataPreparer.getDataForDeepLearning. Creates a pickled dataset"
+        "at `PATH`.",
+    )
     @click.argument("path", required=True)
     def collect_dl_data(path):
         # Move this import here because it is not available everywhere
