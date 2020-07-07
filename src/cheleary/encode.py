@@ -7,6 +7,10 @@ _ENCODERS = dict()
 
 
 class Encoder(Registerable):
+    """
+    Encodes data into a different format. If ID is specified, it should be unique amongst Encoders.
+    """
+
     _REGISTRY = _ENCODERS
 
     @property
