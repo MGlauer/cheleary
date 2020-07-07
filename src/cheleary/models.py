@@ -11,6 +11,7 @@ class Model(Registerable):
     def build(self, **kwargs):
         raise NotImplementedError
 
+    @classmethod
     def _doc(cls):
         self = cls()
         model = self.build()
