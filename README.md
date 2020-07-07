@@ -7,6 +7,7 @@ ontology about chemicals
   
 ## Usage
 
+```
 Usage: cheleary [OPTIONS] COMMAND [ARGS]...
 
 
@@ -18,3 +19,4 @@ Commands:
   continue         Load existing task and continue training.
   test             Load existing task and run tests with cached test data.
   train            Construct and train a new task.
+```
