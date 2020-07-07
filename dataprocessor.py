@@ -86,6 +86,7 @@ class DataProcessor:
                         pkl,
                     )
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
+            print("Use data cached at", self.data_path)
             data = pickle.load(pkl)
             while True:
                 for x, y in data:
