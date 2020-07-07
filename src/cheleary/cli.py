@@ -96,7 +96,7 @@ else:
 
 def _list_registerables(reg_cls):
     for e, cls in reg_cls.list_identifiers():
-        d = cls._doc(cls)
+        d = cls._doc()
         print(e, "-", d if d else "No description")
 
 
