@@ -92,3 +92,19 @@ else:
         chemdata = dprep.getDataForDeepLearning(10, 50)
         with open(path, "wb") as outf:
             pickle.dump(chemdata, outf)
+
+
+def _list_registerables(reg_cls):
+    for e, cls in reg_cls.list_identifiers():
+        d = cls._doc(cls)
+        print(e, "-", d if d else "No description")
+
+
+@cli.command(help="List all available encoders")
+def list_encoders():
+    _list_registerables(Encoder)
+
+
+@cli.command(help="List all available models")
+def list_models():
+    _list_registerables(Model)

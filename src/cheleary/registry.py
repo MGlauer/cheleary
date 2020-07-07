@@ -20,4 +20,8 @@ class Registerable:
 
     @classmethod
     def list_identifiers(cls):
-        return list(cls._REGISTRY.keys())
+        return list(cls._REGISTRY.items())
+
+    @classmethod
+    def _doc(cls, *args):
+        return cls.__doc__
