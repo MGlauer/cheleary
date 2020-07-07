@@ -77,7 +77,9 @@ class LearningTask:
     def save(self):
         print("Save model")
         self.model.save(self._model_path)
-        with open(os.path.join("../../.tasks", self.identifier, "config.json"), "w") as f:
+        with open(
+            os.path.join("../../.tasks", self.identifier, "config.json"), "w"
+        ) as f:
             json.dump(self.config, f)
 
     def test_model(self, training_data):
@@ -136,7 +138,14 @@ def load_task(identifier):
 
 
 def load_from_strings(
-    identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None, load_model=False
+    identifier,
+    data_path,
+    input_encoder,
+    model,
+    output_encoder,
+    version=0,
+    epochs=None,
+    load_model=False,
 ):
     ie = Encoder.get(input_encoder)()
     model_container = Model.get(model)()
@@ -148,5 +157,5 @@ def load_from_strings(
         model_container=model_container,
         version=version,
         prev_epochs=epochs,
-        load_model=load_model
+        load_model=load_model,
     )
