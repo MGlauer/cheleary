@@ -17,3 +17,7 @@ class Registerable:
     @classmethod
     def get(cls, identifier):
         return cls._REGISTRY[identifier]
+
+    @classmethod
+    def list_identifiers(cls):
+        return list(cls._REGISTRY.keys())

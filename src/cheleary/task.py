@@ -1,8 +1,8 @@
 import os
 import tensorflow as tf
-from src.cheleary.dataprocessor import DataProcessor
-from src.cheleary.models import Model
-from src.cheleary.encode import Encoder
+from cheleary.dataprocessor import DataProcessor
+from cheleary.models import Model
+from cheleary.encode import Encoder
 import numpy as np
 import json
 

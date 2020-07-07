@@ -1,8 +1,8 @@
 import click
-from src.cheleary.task import LearningTask, load_task
-from src.cheleary.encode import Encoder
-from src.cheleary.dataprocessor import DataProcessor
-from src.cheleary.models import Model
+from cheleary.task import LearningTask, load_task
+from cheleary.encode import Encoder
+from cheleary.dataprocessor import DataProcessor
+from cheleary.models import Model
 import pickle
 import os
 
@@ -12,10 +12,10 @@ cli = click.Group()
 @cli.command(
     "train",
     help="Contstruct and train a new task. The .tasks folder must not contain "
-         "a task with the same `TASK_ID`. If you want to continue the "
-         "training of an existing model, use `cheleary continue` instead. "
-         "Input data is encoded using the encoder identified by "
-         "`INPUT_ENCODER_ID` and the targets by `OUTPUT_ENCODER_ID`.",
+    "a task with the same `TASK_ID`. If you want to continue the "
+    "training of an existing model, use `cheleary continue` instead. "
+    "Input data is encoded using the encoder identified by "
+    "`INPUT_ENCODER_ID` and the targets by `OUTPUT_ENCODER_ID`.",
 )
 @click.argument("task_id", required=True)
 @click.argument("input_encoder_id", required=True)
@@ -76,7 +76,7 @@ else:
     @cli.command(
         "collect-dl-data",
         help="Command line interface for ChebiDataPreparer.getDataForDeepLearning. Creates a pickled dataset"
-             "at `PATH`.",
+        "at `PATH`.",
     )
     @click.argument("path", required=True)
     def collect_dl_data(path):

@@ -1,7 +1,7 @@
 from pysmiles.read_smiles import _tokenize, TokenType
 import re
 import numpy as np
-from src.cheleary.registry import Registerable
+from cheleary.registry import Registerable
 
 _ENCODERS = dict()
 

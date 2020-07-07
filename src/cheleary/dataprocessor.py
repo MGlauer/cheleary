@@ -1,8 +1,8 @@
 import os
 from random import shuffle
 import pickle
-from src.cheleary.config import LOCAL_SIZE_RESTRICTION
-from src.cheleary.encode import Encoder
+from cheleary.config import LOCAL_SIZE_RESTRICTION
+from cheleary.encode import Encoder
 import numpy as np
 
 _DPS = {}
