@@ -12,5 +12,8 @@ setup(
     extras_require={"dev": ["black", "pre-commit"]},
     author="glauer",
     author_email="",
-    description="",
+    description="Cheleary is a toolkit to build an easy training environment. It implements \
+                 different kinds of encodings and network structures based on `keras` and \
+                 `tensorflow`. The main focus are learning tasks around `CHEBI` - an \
+                 ontology about chemicals",
 )
