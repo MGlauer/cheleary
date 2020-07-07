@@ -1,8 +1,8 @@
 # cheleary
 
 Cheleary is a toolkit to build an easy training environment. It implements
-different kinds ofencodings and network structures based on `keras` and
-`tensorflow`. The main focus are learningtasks around `CHEBI` - an
+different kinds of encodings and network structures based on `keras` and
+`tensorflow`. The main focus are learning tasks around `CHEBI` - an
 ontology about chemicals
   
 ## Usage
