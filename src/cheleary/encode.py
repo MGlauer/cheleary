@@ -253,6 +253,9 @@ class SmilesOneHotEncoder(Encoder):
 
 
 class SmilesAtomEncoder(Encoder):
+    """Parses individual atoms and encodes them by their periodic number. 0 represents the `*` wild card. Bond types are
+    enumerated and encoded accordingly."""
+
     _ID = "SAE"
 
     # atom_chars = sorted(['C@@H', 'C@H', 'N@H+', 'Nb', 'Ta', 'N', 'c', 'n', 'CH', 'O', 'C', 'P', 'S', 'Cl', 'nH', 's', 'Br', 'o', 'I', 'H', '*', 'F', 'Ca', 'Al', 'OH', 'Na', 'NH', 'Se', 'Co', 'Hg', 'As', 'Mg', 'Cu', 'Si', 'Au', 'Tc', 'B', 'Fe', 'Ge', 'Sm', 'Ru', 'V', 'Mo', 'He', 'Sb', 'Yb', 'Gd', 'Li', 'Cr', 'Ag', 'Fr', 'Ba', 'Pb', 'Y', 'Sr', 'Ga', 'Eu', 'Mn', 'Os', 'Tl', 'In', 'Sn', 'Ir', 'La', 'Lu', 'Cs', 'Ce', 'W', 'Zn', 'Be', 'Bi', 'U', 'Ni', 'Ho', 'Pt', 'Rb', 'K', 'SeH', 'TeH', 'Te', 'At', 'Re', 'Ra', 'Ti', 'SiH', 'se', 'pH', 'te', 'Ar', 'Xe', 'Kr', 'Cd', 'Pd', 'Rh', 'cH', 'p', 'Ne', 'Rn', 'LiH', 'Zr', 'AsH', 'Pr', 'Po', 'Tb'], key=lambda x: -len(x))
@@ -1058,6 +1061,8 @@ class CharacterOrdEncoder(Encoder):
 
 
 class ChebiClassEncoder(Encoder):
+    """Encodes chebi ids according to a fixed schema (see `ChebiClassEncoder.__CLASSES`)."""
+
     _ID = "CCE"
     __CLASSES = {
         "CHEBI:37533": 0,
@@ -1569,6 +1574,8 @@ class ChebiClassEncoder(Encoder):
 
 
 class IntEncoder(Encoder):
+    """Casts a list into a list of integers (`[int(c) for c in input]`)"""
+
     _ID = "IE"
 
     @property
