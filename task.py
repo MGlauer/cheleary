@@ -33,8 +33,10 @@ class LearningTask:
         self.version = version
 
         if load_model:
+            print(f"Load model {self._model_path}")
             self.model = tf.keras.models.load_model(self._model_path)
         else:
+            print(f"Build new model")
             self.model = model_container.build()
 
         if prev_epochs is None:
