@@ -11,7 +11,7 @@ cli = click.Group()
 
 @cli.command(
     "train",
-    help="Contstruct and train a new task. The .tasks folder must not contain "
+    help="Construct and train a new task. The .tasks folder must not contain "
     "a task with the same `TASK_ID`. If you want to continue the "
     "training of an existing model, use `cheleary continue` instead. "
     "Input data is encoded using the encoder identified by "
