@@ -1,6 +1,7 @@
 import os
 import tensorflow as tf
 from dataprocessor import DataProcessor
+import models
 from models import Model
 from encode import Encoder
 import numpy as np
@@ -132,11 +133,11 @@ class LearningTask:
 def load_task(identifier):
     with open(os.path.join(".tasks", identifier, "config.json")) as fin:
         config = json.load(fin)
-    return load_from_strings(**config)
+    return load_from_strings(**config, load_model=True)
 
 
 def load_from_strings(
-    identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None
+    identifier, data_path, input_encoder, model, output_encoder, version=0, epochs=None, load_model=False
 ):
     ie = Encoder.get(input_encoder)()
     model_container = Model.get(model)()
@@ -148,4 +149,5 @@ def load_from_strings(
         model_container=model_container,
         version=version,
         prev_epochs=epochs,
+        load_model=load_model
     )
