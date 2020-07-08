@@ -115,7 +115,7 @@ class BiLSTMClassifierModel(Model):
             )
         )
         model.compile(
-            optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
+            optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
             loss=loss,
             metrics=["mae", "acc", "binary_crossentropy"],
         )
