@@ -58,6 +58,7 @@ class LearningTask:
             shuffle=True,
             callbacks=[log_callback],
             verbose=2,
+            batch_size=1,
             steps_per_epoch=self.dataprocessor.length,
             validation_data=test_data,
         )

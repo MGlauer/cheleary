@@ -81,15 +81,8 @@ class DataProcessor:
                         for x, y in data[l:r]
                     ]
                     lens = {len(t[0]) for t in l}
-                    l = [
-                        tuple(
-                            map(
-                                np.asarray,
-                                zip(*[(x, y) for x, y in l if len(x) == fix]),
-                            )
-                        )
-                        for fix in lens
-                    ]
+                    l = [zip(*((x, y) for x, y in l if len(x) == fix)) for fix in lens]
+                    l = [(np.asarray(xs), np.asarray(ys)) for xs, ys in l]
                     pickle.dump(
                         l, pkl,
                     )
