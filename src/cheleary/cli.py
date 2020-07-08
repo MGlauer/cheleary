@@ -35,7 +35,7 @@ cli = click.Group(
 def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
     if os.path.exists(os.path.join("../../.tasks", task_id)):
         print(
-            "Task already exists. If you want to continue learning, specify use the `continue` instead of `train`."
+            f"Task '{task_id}' already exists. If you want to continue learning, specify use the `continue` instead of `train`."
         )
         exit(1)
     input_encoder = Encoder.get(input_encoder_id)()
