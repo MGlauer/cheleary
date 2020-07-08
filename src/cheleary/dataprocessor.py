@@ -75,16 +75,15 @@ class DataProcessor:
                 ("eval", train_amount + test_amount, -1),
             ]:
                 with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
-
-                    l = [
-                        (self.input_encoder.run(x), self.output_encoder.run(y))
-                        for x, y in data[l:r]
-                    ]
-                    lens = {len(t[0]) for t in l}
-                    l = [zip(*((x, y) for x, y in l if len(x) == fix)) for fix in lens]
-                    l = [(np.asarray(xs), np.asarray(ys)) for xs, ys in l]
                     pickle.dump(
-                        l, pkl,
+                        [
+                            (
+                                np.asarray([self.input_encoder.run(x)]),
+                                np.asarray([self.output_encoder.run(y)]),
+                            )
+                            for x, y in data[l:r]
+                        ],
+                        pkl,
                     )
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
             print("Use data cached at", self.data_path)
