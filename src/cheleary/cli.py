@@ -33,7 +33,7 @@ cli = click.Group(
 @click.option("--model", default=None, help="Identifier for the model to use")
 @click.option("--epochs", default=1, help="Number of epochs to train")
 def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
-    if os.path.exists(os.path.join("../../.tasks", task_id)):
+    if os.path.exists(os.path.join(".tasks", task_id)):
         print(
             f"Task '{task_id}' already exists. If you want to continue learning, specify use the `continue` instead of `train`."
         )
