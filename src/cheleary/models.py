@@ -91,12 +91,12 @@ class BiLSTMClassifierModel(Model):
         model = tf.keras.Sequential()
         model.add(
             tf.keras.layers.Embedding(
-                input_size, 50, input_shape=(None,), name="inputs"
+                input_size, 100, input_shape=(None,), name="inputs"
             )
         )
         forward = tf.keras.layers.Bidirectional(
             tf.keras.layers.LSTM(
-                300,
+                1000,
                 activation=tf.keras.activations.tanh,
                 recurrent_activation=tf.keras.activations.sigmoid,
                 name="forward",
