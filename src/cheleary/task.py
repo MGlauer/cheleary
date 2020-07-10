@@ -81,11 +81,11 @@ class LearningTask:
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
-    def test_model(self, training_data):
+    def test_model(self, training_data, path):
         mse_total = 0
         counter = 0
         self.model.summary()
-        with open(".log/tests.csv", "w") as fout:
+        with open(path, "w") as fout:
             for x_batch, y_batch in training_data:
                 y_pred_batch = self.model.predict(x_batch)
                 for y_real, y_pred in zip(y_batch, y_pred_batch):
@@ -109,10 +109,10 @@ class LearningTask:
         self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")
 
-    def test(self):
+    def test(self, path):
         dataset = self.dataprocessor.load_data(kind="test")
         print("Start training")
-        self.test_model(dataset,)
+        self.test_model(dataset, path)
 
     @property
     def config(self):
