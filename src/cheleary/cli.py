@@ -64,7 +64,7 @@ def cont(task_id, epochs):
 
 @cli.command("test", help="Load existing task and run tests with cached test data.")
 @click.argument("task_id", required=True)
-@click.argument("path", required=True)
+@click.option("--path", default=None)
 def test(task_id, path):
     t = load_task(task_id)
     t.test(path)

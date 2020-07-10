@@ -81,38 +81,37 @@ class LearningTask:
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
-    def test_model(self, training_data, path):
+    def test_model(self, training_data, path=None):
         mse_total = 0
         counter = 0
         self.model.summary()
+        if not path:
+            path = os.path.join(self._version_root, "test.csv")
         with open(path, "w") as fout:
-            for x_batch, y_batch in training_data:
-                y_pred_batch = self.model.predict(x_batch)
-                for y_real, y_pred in zip(y_batch, y_pred_batch):
+            for (x_real_batch, x_encoded), y_batch in training_data:
+                y_pred_batch = self.model.predict(x_encoded)
+                for x_real, y_real, y_pred in zip(x_real_batch, y_batch, y_pred_batch):
+                    fout.write(str(x_real) + "\n")
                     fout.write(",".join(map(str, y_pred[:])) + "\n")
                     fout.write(",".join(map(str, y_real)) + "\n")
-                    counter += 1
-                    mse = np.dot((y_pred[:] - y_real), (y_pred[:] - y_real)) / len(
-                        y_real
-                    )
-                    mse_total += mse
-                    print(mse)
-        print(mse_total / counter)
 
     def run(self, epochs=1):
         self.version += 1
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
+        # Drop unencoded data from dataset
+        dataset = ((x[1], y) for x, y in dataset)
         x_test, y_test = tuple(zip(*self.dataprocessor.load_data(kind="test")))
+        x_test = [x[1] for x in x_test]
         # x_test = [x for (x, _) in self.dataprocessor.load_data(kind="test")]
         # y_test = [y for (_, y) in self.dataprocessor.load_data(kind="test")]
         print("Start training")
         self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")
 
-    def test(self, path):
+    def test(self, path=None):
         dataset = self.dataprocessor.load_data(kind="test")
-        print("Start training")
-        self.test_model(dataset, path)
+        print("Start testing")
+        self.test_model(dataset, path=path)
 
     @property
     def config(self):

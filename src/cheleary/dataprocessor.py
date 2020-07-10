@@ -78,7 +78,7 @@ class DataProcessor:
                     pickle.dump(
                         [
                             (
-                                np.asarray([self.input_encoder.run(x)]),
+                                ([x], np.asarray([self.input_encoder.run(x)])),
                                 np.asarray([self.output_encoder.run(y)]),
                             )
                             for x, y in data[l:r]
