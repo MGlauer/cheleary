@@ -121,3 +121,52 @@ class BiLSTMClassifierModel(Model):
         )
         self.model = model
         return model
+
+
+class BiLSTMClassifierSpreadModel(Model):
+    _ID = "bi_lstm_classifie_spread"
+
+    def build(self, input_size=300, output_size=500, learning_rate=0.001):
+        loss = SparseLoss(name="sparse_loss")  # tf.keras.losses.BinaryCrossentropy()
+
+        model = tf.keras.Sequential()
+        model.add(
+            tf.keras.layers.Embedding(
+                input_size, 100, input_shape=(None,), name="inputs"
+            )
+        )
+        forward = tf.keras.layers.Bidirectional(
+            tf.keras.layers.LSTM(
+                1000,
+                activation=tf.keras.activations.tanh,
+                recurrent_activation=tf.keras.activations.sigmoid,
+                name="forward",
+                recurrent_dropout=0,
+                unroll=False,
+                use_bias=True,
+            )
+        )
+        model.add(forward)
+        model.add(
+            tf.keras.layers.Dense(
+                10000,
+                use_bias=True,
+                name="spread",
+                activation=tf.keras.activations.sigmoid,
+            )
+        )
+        model.add(
+            tf.keras.layers.Dense(
+                output_size,
+                use_bias=True,
+                name="outputs",
+                activation=tf.keras.activations.sigmoid,
+            )
+        )
+        model.compile(
+            optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
+            loss=loss,
+            metrics=["mse", "mae", "acc", "binary_crossentropy"],
+        )
+        self.model = model
+        return model
