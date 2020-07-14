@@ -124,7 +124,7 @@ class BiLSTMClassifierModel(Model):
 
 
 class BiLSTMClassifierSpreadModel(Model):
-    _ID = "bi_lstm_classifie_spread"
+    _ID = "bi_lstm_classifier_spread"
 
     def build(self, input_size=300, output_size=500, learning_rate=0.001):
         loss = SparseLoss(name="sparse_loss")  # tf.keras.losses.BinaryCrossentropy()
