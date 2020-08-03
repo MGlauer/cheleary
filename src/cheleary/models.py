@@ -11,6 +11,9 @@ class Model(Registerable):
     def build(self, **kwargs):
         raise NotImplementedError
 
+    def __init__(self):
+        self.loss = SparseLoss(name="sparse_loss")
+
     @classmethod
     def _doc(cls):
         self = cls()
@@ -41,7 +44,6 @@ class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
     def build(self, input_size=300, output_size=500, learning_rate=0.001):
-        loss = SparseLoss(name="sparse_loss")  # tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
         model.add(
@@ -75,7 +77,7 @@ class LSTMClassifierModel(Model):
         )
         model.compile(
             optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
-            loss=loss,
+            loss=self.loss,
             metrics=["mae", "acc", "binary_crossentropy"],
         )
         self.model = model
@@ -86,8 +88,6 @@ class BiLSTMClassifierModel(Model):
     _ID = "bi_lstm_classifier"
 
     def build(self, input_size=300, output_size=500, learning_rate=0.001):
-        loss = SparseLoss(name="sparse_loss")  # tf.keras.losses.BinaryCrossentropy()
-
         model = tf.keras.Sequential()
         model.add(
             tf.keras.layers.Embedding(
@@ -116,7 +116,7 @@ class BiLSTMClassifierModel(Model):
         )
         model.compile(
             optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
-            loss=loss,
+            loss=self.loss,
             metrics=["mae", "acc", "binary_crossentropy"],
         )
         self.model = model
@@ -127,7 +127,6 @@ class BiLSTMClassifierSpreadModel(Model):
     _ID = "bi_lstm_classifier_spread"
 
     def build(self, input_size=300, output_size=500, learning_rate=0.001):
-        loss = SparseLoss(name="sparse_loss")  # tf.keras.losses.BinaryCrossentropy()
 
         model = tf.keras.Sequential()
         model.add(
@@ -165,7 +164,7 @@ class BiLSTMClassifierSpreadModel(Model):
         )
         model.compile(
             optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
-            loss=loss,
+            loss=self.loss,
             metrics=["mse", "mae", "acc", "binary_crossentropy"],
         )
         self.model = model
