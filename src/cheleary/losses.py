@@ -15,6 +15,9 @@ class CustomLoss(tf.keras.losses.Loss):
         else:
             return tf.losses.get(identifier)
 
+    def call(self, y_true, y_pred):
+        raise NotImplementedError
+
 
 @tf.keras.utils.register_keras_serializable(package="Custom", name=None)
 class SparseLoss(CustomLoss):
