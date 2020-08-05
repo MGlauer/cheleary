@@ -8,6 +8,10 @@ _MODELS = {}
 
 @tf.keras.utils.register_keras_serializable(package="Custom", name=None)
 class SparseLoss(tf.keras.losses.Loss):
+    def __init__(self, loss: tf.losses.Loss, **kwargs):
+        super(SparseLoss, self).__init__(**kwargs)
+        self._internal_loss = loss
+
     def call(self, y_true, y_pred):
         y_true = math_ops.cast(y_true, y_pred.dtype)
         # count ones
@@ -16,7 +20,7 @@ class SparseLoss(tf.keras.losses.Loss):
         zeros = tf.math.reduce_sum(1 - y_true)
         # weight ones with the number of zeros and vice versa
         weights = y_true * zeros + (1 - y_true) * ones
-        squares = tf.square(y_true - y_pred)
+        squares = self._internal_loss(y_true, y_pred)
         return tf.reduce_mean(weights * squares)
 
 
