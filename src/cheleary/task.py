@@ -124,7 +124,7 @@ class LearningTask:
             output_encoder=self.dataprocessor.output_encoder._ID,
             epochs=self._prev_epochs,
             loss=self.model.loss.get_config(),
-            optimizer=self.model.optimizer.name,
+            optimizer=self.model.optimizer._name,
         )
 
     def __repr__(self):

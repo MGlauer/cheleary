@@ -38,7 +38,10 @@ class SparseLoss(CustomLoss):
 
     def get_config(self):
         d = super(SparseLoss, self).get_config()
-        d["interal"] = self._internal_loss.get_config()
+        if isinstance(self._internal_loss, tf.keras.losses.Loss):
+            d["interal"] = self._internal_loss.get_config()
+        else:
+            d["interal"] = self._internal_loss._keras_api_names[0]
         return d
 
     def from_config(cls, config):
