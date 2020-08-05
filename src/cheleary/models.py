@@ -1,37 +1,17 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 from cheleary.registry import Registerable
-from tensorflow.python.ops import math_ops
+from cheleary.losses import SparseLoss
+
 
 _MODELS = {}
-
-
-@tf.keras.utils.register_keras_serializable(package="Custom", name=None)
-class SparseLoss(tf.keras.losses.Loss):
-    def __init__(self, loss: tf.losses.Loss, **kwargs):
-        super(SparseLoss, self).__init__(**kwargs)
-        self._internal_loss = loss
-
-    def call(self, y_true, y_pred):
-        y_true = math_ops.cast(y_true, y_pred.dtype)
-        # count ones
-        ones = tf.math.reduce_sum(y_true[:])
-        # count zeros
-        zeros = tf.math.reduce_sum(1 - y_true)
-        # weight ones with the number of zeros and vice versa
-        weights = y_true * zeros + (1 - y_true) * ones
-        squares = self._internal_loss(y_true, y_pred)
-        return tf.reduce_mean(weights * squares)
-
-
-tf.keras.losses.SparseLoss = SparseLoss
 
 
 class Model(Registerable):
     _REGISTRY = _MODELS
 
     def __init__(self, loss=None, optimizer=None):
-        self.loss = loss or SparseLoss(name="sparse_loss")
+        self.loss = loss or SparseLoss(loss=tf.keras.losses.mse, name="sparse_loss")
         self.optimizer = optimizer or tf.keras.optimizers.Adamax
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:
