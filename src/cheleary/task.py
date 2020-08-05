@@ -123,6 +123,8 @@ class LearningTask:
             model=self.model_container._ID,
             output_encoder=self.dataprocessor.output_encoder._ID,
             epochs=self._prev_epochs,
+            loss=self.model.loss.get_config(),
+            optimizer=self.model.optimizer.name,
         )
 
     def __repr__(self):
@@ -144,9 +146,13 @@ def load_from_strings(
     version=0,
     epochs=None,
     load_model=False,
+    loss_dict=None,
+    optimizer=None,
 ):
     ie = Encoder.get(input_encoder)()
-    model_container = Model.get(model)()
+    loss = tf.keras.losses.Loss.from_config(loss_dict)
+    optimizer = tf.keras.optimizers.get(optimizer)
+    model_container = Model.get(model)(loss=loss, optimizer=optimizer)
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
     return LearningTask(

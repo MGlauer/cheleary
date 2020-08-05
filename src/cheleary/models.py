@@ -11,8 +11,8 @@ class Model(Registerable):
     _REGISTRY = _MODELS
 
     def __init__(self, loss=None, optimizer=None):
-        self.loss = loss or SparseLoss(loss=tf.keras.losses.mse, name="sparse_loss")
-        self.optimizer = optimizer or tf.keras.optimizers.Adamax
+        self._loss = loss or SparseLoss(loss=tf.keras.losses.mse, name="sparse_loss")
+        self._optimizer = optimizer or tf.keras.optimizers.Adamax
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError
@@ -20,8 +20,8 @@ class Model(Registerable):
     def build(self, learning_rate=0.001, **kwargs):
         model = self.create_model(**kwargs)
         model.compile(
-            optimizer=self.optimizer(learning_rate=learning_rate),
-            loss=self.loss,
+            optimizer=self._optimizer(learning_rate=learning_rate),
+            loss=self._loss,
             metrics=[
                 "mae",
                 "mse",
