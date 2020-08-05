@@ -1,26 +1,9 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 from cheleary.registry import Registerable
 from tensorflow.python.ops import math_ops
 
 _MODELS = {}
-
-
-class Model(Registerable):
-    _REGISTRY = _MODELS
-
-    def build(self, **kwargs):
-        raise NotImplementedError
-
-    def __init__(self):
-        self.loss = SparseLoss(name="sparse_loss")
-
-    @classmethod
-    def _doc(cls):
-        self = cls()
-        model = self.build()
-        s = []
-        model.summary(print_fn=lambda s0: s.append(s0))
-        return "\n".join(s)
 
 
 @tf.keras.utils.register_keras_serializable(package="Custom", name=None)
@@ -40,10 +23,47 @@ class SparseLoss(tf.keras.losses.Loss):
 tf.keras.losses.SparseLoss = SparseLoss
 
 
+class Model(Registerable):
+    _REGISTRY = _MODELS
+
+    def __init__(self, loss=None, optimizer=None):
+        self.loss = loss or SparseLoss(name="sparse_loss")
+        self.optimizer = optimizer or tf.keras.optimizers.Adamax
+
+    def create_model(self, **kwargs) -> tf.keras.models.Model:
+        raise NotImplementedError
+
+    def build(self, learning_rate=0.001, **kwargs):
+        model = self.create_model(**kwargs)
+        model.compile(
+            optimizer=self.optimizer(learning_rate=learning_rate),
+            loss=self.loss,
+            metrics=[
+                "mae",
+                "mse",
+                "acc",
+                "binary_crossentropy",
+                tf.metrics.Precision,
+                tf.metrics.Recall,
+                tfa.metrics.F1Score,
+            ],
+        )
+        self.model = model
+        return model
+
+    @classmethod
+    def _doc(cls):
+        self = cls()
+        model = self.build()
+        s = []
+        model.summary(print_fn=lambda s0: s.append(s0))
+        return "\n".join(s)
+
+
 class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
-    def build(self, input_size=300, output_size=500, learning_rate=0.001):
+    def create_model(self, input_size=300, output_size=500):
 
         model = tf.keras.Sequential()
         model.add(
@@ -75,19 +95,13 @@ class LSTMClassifierModel(Model):
                 activation=tf.keras.activations.sigmoid,
             )
         )
-        model.compile(
-            optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
-            loss=self.loss,
-            metrics=["mae", "acc", "binary_crossentropy"],
-        )
-        self.model = model
         return model
 
 
 class BiLSTMClassifierModel(Model):
     _ID = "bi_lstm_classifier"
 
-    def build(self, input_size=300, output_size=500, learning_rate=0.001):
+    def create_model(self, input_size=300, output_size=500):
         model = tf.keras.Sequential()
         model.add(
             tf.keras.layers.Embedding(
@@ -114,19 +128,13 @@ class BiLSTMClassifierModel(Model):
                 activation=tf.keras.activations.sigmoid,
             )
         )
-        model.compile(
-            optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
-            loss=self.loss,
-            metrics=["mae", "acc", "binary_crossentropy"],
-        )
-        self.model = model
         return model
 
 
 class BiLSTMClassifierSpreadModel(Model):
     _ID = "bi_lstm_classifier_spread"
 
-    def build(self, input_size=300, output_size=500, learning_rate=0.001):
+    def create_model(self, input_size=300, output_size=500):
 
         model = tf.keras.Sequential()
         model.add(
@@ -162,10 +170,4 @@ class BiLSTMClassifierSpreadModel(Model):
                 activation=tf.keras.activations.sigmoid,
             )
         )
-        model.compile(
-            optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
-            loss=self.loss,
-            metrics=["mse", "mae", "acc", "binary_crossentropy"],
-        )
-        self.model = model
         return model

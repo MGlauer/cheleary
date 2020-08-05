@@ -14,7 +14,7 @@ setup(
     zip_safe=False,
     url="https://github.com/MGlauer/cheleary",
     license="",
-    install_requires=["tensorflow", "numpy", "pysmiles", "pandas"],
+    install_requires=["tensorflow", "tensorflow_addons", "numpy", "pysmiles", "pandas"],
     extras_require={"dev": ["black", "pre-commit"]},
     author="glauer",
     author_email="",
