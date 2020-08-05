@@ -8,6 +8,13 @@ _LOSSES = {}
 class CustomLoss(tf.keras.losses.Loss):
     _REGISTRY = _LOSSES
 
+    @classmethod
+    def get(cls, identifier):
+        if identifier in cls._REGISTRY:
+            return cls._REGISTRY[identifier]
+        else:
+            return tf.losses.get(identifier)
+
 
 @tf.keras.utils.register_keras_serializable(package="Custom", name=None)
 class SparseLoss(CustomLoss):
@@ -25,6 +32,16 @@ class SparseLoss(CustomLoss):
         weights = y_true * zeros + (1 - y_true) * ones
         squares = self._internal_loss(y_true, y_pred)
         return tf.reduce_mean(weights * squares)
+
+    def get_config(self):
+        d = super(SparseLoss, self).get_config()
+        d["interal"] = self._internal_loss.get_config()
+        return d
+
+    def from_config(cls, config):
+        internal = tf.keras.losses.Loss.from_config(config.pop("internal"))
+        config["loss"] = internal
+        return super(SparseLoss, cls).from_config(config)
 
 
 tf.keras.losses.SparseLoss = SparseLoss
