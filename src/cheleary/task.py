@@ -3,6 +3,7 @@ import tensorflow as tf
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.encode import Encoder
+from cheleary.losses import CustomLoss
 import numpy as np
 import json
 
@@ -50,13 +51,30 @@ class LearningTask:
     def train_model(self, data, test_data=None, epochs=1):
         self._prev_epochs.append(epochs)
         self.model.summary()
-        os.makedirs(self._version_root, exist_ok=True)
-        log_callback = tf.keras.callbacks.CSVLogger(self._train_log_path)
+        os.makedirs(self._model_root)
+        os.makedirs(os.path.join(self._model_root, "weights"))
+        log_callback = tf.keras.callbacks.CSVLogger(
+            os.path.join(self._model_root, "training.log")
+        )
+        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            os.path.join(self._model_root, "weights", "weights.{epoch:02d}.hdf5"),
+            save_freq="epoch",
+            period=2,
+        )
+        checkpoint_callback_best = tf.keras.callbacks.ModelCheckpoint(
+            os.path.join(self._model_root, "weights", "best.{epoch:02d}.hdf5"),
+            save_best_only=True,
+            save_freq="epoch",
+            period=1,
+        )
+        early_stop = tf.keras.callbacks.EarlyStopping(
+            patience=20, restore_best_weights=True
+        )
         self.model.fit(
             data,
             epochs=epochs,
             shuffle=True,
-            callbacks=[log_callback],
+            callbacks=[log_callback, checkpoint_callback, checkpoint_callback_best],
             verbose=2,
             batch_size=1,
             steps_per_epoch=self.dataprocessor.length,
@@ -68,6 +86,10 @@ class LearningTask:
         return os.path.join(".tasks", self.identifier, f"v{self.version}")
 
     @property
+    def _model_root(self):
+        return os.path.join(".tasks", self.identifier)
+
+    @property
     def _train_log_path(self):
         return os.path.join(self._version_root, "training.log")
 
@@ -76,8 +98,7 @@ class LearningTask:
         return os.path.join(self._version_root, "model")
 
     def save(self):
-        print("Save model")
-        self.model.save(self._model_path)
+        self.model.save(self._version_root)
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
@@ -146,13 +167,13 @@ def load_from_strings(
     version=0,
     epochs=None,
     load_model=False,
-    loss_dict=None,
+    loss=None,
     optimizer=None,
 ):
     ie = Encoder.get(input_encoder)()
-    loss = tf.keras.losses.Loss.from_config(loss_dict)
+    loss_function = CustomLoss.from_config(loss)
     optimizer = tf.keras.optimizers.get(optimizer)
-    model_container = Model.get(model)(loss=loss, optimizer=optimizer)
+    model_container = Model.get(model)(loss=loss_function, optimizer=optimizer)
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
     return LearningTask(
