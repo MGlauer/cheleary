@@ -3,6 +3,7 @@ from cheleary.task import LearningTask, load_task
 from cheleary.encode import Encoder
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
+from cheleary.analysis import analyze as an
 import pickle
 import os
 
@@ -68,6 +69,13 @@ def cont(task_id, epochs):
 def test(task_id, path):
     t = load_task(task_id)
     t.test(path)
+
+
+@cli.command("analyze")
+@click.argument("in-path", required=True)
+@click.argument("out-path", required=True)
+def analyze(in_path, out_path):
+    an(in_path, out_path)
 
 
 try:
