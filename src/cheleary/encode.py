@@ -1056,6 +1056,8 @@ class AtomOrdEncoder(Encoder):
 
 
 class CharacterOrdEncoder(Encoder):
+    _ID = "COE"
+
     @property
     def shape(self):
         raise (None, 1)
