@@ -47,11 +47,8 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
         input_encoder=input_encoder,
         output_encoder=output_encoder,
     )
-    t = LearningTask(
-        identifier=task_id, dataprocessor=dp, model_container=Model.get(model)()
-    )
+    t = LearningTask(identifier=task_id, dataprocessor=dp, model=Model.get(model)())
     t.run(epochs=epochs)
-    t.save()
 
 
 @cli.command("continue", help="Load existing task and continue training.")
@@ -60,7 +57,6 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
 def cont(task_id, epochs):
     t = load_task(task_id)
     t.run(epochs=epochs)
-    t.save()
 
 
 @cli.command("test", help="Load existing task and run tests with cached test data.")

@@ -1,9 +1,10 @@
 import os
 import tensorflow as tf
+import tensorflow_addons as tfa
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.encode import Encoder
-from cheleary.losses import CustomLoss
+from cheleary.losses import CustomLoss, SparseLoss
 import numpy as np
 import json
 
@@ -13,10 +14,9 @@ class LearningTask:
         self,
         identifier,
         dataprocessor: DataProcessor,
-        model_container: Model,
+        model: Model = None,
         batch_size=1,
         split=0.7,
-        version=0,
         prev_epochs=None,
         load_model=False,
     ):
@@ -25,20 +25,27 @@ class LearningTask:
 
         self.dataprocessor = dataprocessor
 
-        self.model_container = model_container
-
         self.batch_size = batch_size
 
         self.split = split
 
-        self.version = version
-
+        self.last_epoch = 0
         if load_model:
-            print(f"Load model {self._model_path}")
-            self.model = tf.keras.models.load_model(self._model_path)
+            last = max(os.listdir(os.path.join(self._model_root, "checkpoints")))
+            self.last_epoch = int(last)
+            print(f"Load model", last)
+            self.model = tf.keras.models.load_model(
+                os.path.join(self._model_root, "checkpoints", last),
+                custom_objects={
+                    "SparseLoss": SparseLoss,
+                    "F1Score": tfa.metrics.F1Score,
+                },
+                compile=True,
+            )
         else:
             print(f"Build new model")
-            self.model = model_container.build()
+            self.model = model.build()
+            self.save_config()
 
         if prev_epochs is None:
             self._prev_epochs = []
@@ -51,39 +58,48 @@ class LearningTask:
     def train_model(self, data, test_data=None, epochs=1):
         self._prev_epochs.append(epochs)
         self.model.summary()
-        os.makedirs(self._model_root)
-        os.makedirs(os.path.join(self._model_root, "weights"))
+        cp_name = "{epoch:03d}"
+        os.makedirs(os.path.join(self._model_root, "checkpoints"), exist_ok=True)
+        os.makedirs(os.path.join(self._model_root, "best"), exist_ok=True)
         log_callback = tf.keras.callbacks.CSVLogger(
-            os.path.join(self._model_root, "training.log")
+            os.path.join(self._model_root, "training.log"), append=True
         )
         checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(self._model_root, "weights", "weights.{epoch:02d}.hdf5"),
+            os.path.join(self._model_root, "checkpoints", cp_name),
             save_freq="epoch",
-            period=2,
+            period=25,
         )
         checkpoint_callback_best = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(self._model_root, "weights", "best.{epoch:02d}.hdf5"),
+            os.path.join(self._model_root, "best", cp_name),
             save_best_only=True,
             save_freq="epoch",
-            period=1,
         )
         early_stop = tf.keras.callbacks.EarlyStopping(
-            patience=20, restore_best_weights=True
+            patience=25, restore_best_weights=True
         )
         self.model.fit(
             data,
-            epochs=epochs,
+            epochs=self.last_epoch + epochs,
             shuffle=True,
-            callbacks=[log_callback, checkpoint_callback, checkpoint_callback_best],
+            callbacks=[
+                log_callback,
+                checkpoint_callback,
+                checkpoint_callback_best,
+                early_stop,
+            ],
             verbose=2,
             batch_size=1,
             steps_per_epoch=self.dataprocessor.length,
             validation_data=test_data,
+            initial_epoch=self.last_epoch,
         )
-
-    @property
-    def _version_root(self):
-        return os.path.join(".tasks", self.identifier, f"v{self.version}")
+        if self.last_epoch + epochs % 25:
+            print("Create end-of-training checkpoint")
+            self.model.save(
+                os.path.join(
+                    self._model_root, "checkpoints", f"{self.last_epoch+epochs:03d}"
+                )
+            )
 
     @property
     def _model_root(self):
@@ -91,14 +107,10 @@ class LearningTask:
 
     @property
     def _train_log_path(self):
-        return os.path.join(self._version_root, "training.log")
+        return os.path.join(self._model_root, "training.log")
 
-    @property
-    def _model_path(self):
-        return os.path.join(self._version_root, "model")
-
-    def save(self):
-        self.model.save(self._version_root)
+    def save_config(self):
+        os.makedirs(self._model_root)
         with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
             json.dump(self.config, f)
 
@@ -117,7 +129,6 @@ class LearningTask:
                     fout.write(",".join(map(str, y_real)) + "\n")
 
     def run(self, epochs=1):
-        self.version += 1
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
         # Drop unencoded data from dataset
         dataset = ((x[1], y) for x, y in dataset)
@@ -138,14 +149,10 @@ class LearningTask:
     def config(self):
         return dict(
             identifier=self.identifier,
-            version=self.version,
             data_path=self.dataprocessor.data_path,
             input_encoder=self.dataprocessor.input_encoder._ID,
-            model=self.model_container._ID,
+            model=self.model.to_json(),
             output_encoder=self.dataprocessor.output_encoder._ID,
-            epochs=self._prev_epochs,
-            loss=self.model.loss.get_config(),
-            optimizer=self.model.optimizer._name,
         )
 
     def __repr__(self):
@@ -159,28 +166,11 @@ def load_task(identifier):
 
 
 def load_from_strings(
-    identifier,
-    data_path,
-    input_encoder,
-    model,
-    output_encoder,
-    version=0,
-    epochs=None,
-    load_model=False,
-    loss=None,
-    optimizer=None,
+    identifier, data_path, input_encoder, model, output_encoder, load_model=False,
 ):
+    m = tf.keras.models.model_from_json(model)
+    m.compile()
     ie = Encoder.get(input_encoder)()
-    loss_function = CustomLoss.from_config(loss)
-    optimizer = tf.keras.optimizers.get(optimizer)
-    model_container = Model.get(model)(loss=loss_function, optimizer=optimizer)
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
-    return LearningTask(
-        identifier=identifier,
-        dataprocessor=dp,
-        model_container=model_container,
-        version=version,
-        prev_epochs=epochs,
-        load_model=load_model,
-    )
+    return LearningTask(identifier=identifier, dataprocessor=dp, load_model=load_model,)

@@ -11,7 +11,9 @@ class Model(Registerable):
     _REGISTRY = _MODELS
 
     def __init__(self, loss=None, optimizer=None):
-        self._loss = loss or SparseLoss(loss=tf.keras.losses.MSE, name="sparse_loss")
+        self._loss = loss or SparseLoss(
+            loss=tf.keras.losses.MeanSquaredError(), name="sparse_loss"
+        )
         self._optimizer = optimizer or tf.keras.optimizers.Adamax
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:

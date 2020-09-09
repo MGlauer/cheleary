@@ -21,9 +21,9 @@ class CustomLoss(tf.keras.losses.Loss):
 
 @tf.keras.utils.register_keras_serializable(package="Custom", name=None)
 class SparseLoss(CustomLoss):
-    def __init__(self, loss: tf.losses.Loss, **kwargs):
+    def __init__(self, loss: tf.losses.Loss = None, **kwargs):
         super(SparseLoss, self).__init__(**kwargs)
-        self._internal_loss = loss
+        self._internal_loss = loss or tf.keras.losses.MeanSquaredError()
 
     def call(self, y_true, y_pred):
         y_true = math_ops.cast(y_true, y_pred.dtype)
@@ -39,16 +39,15 @@ class SparseLoss(CustomLoss):
     def get_config(self):
         d = super(SparseLoss, self).get_config()
         if isinstance(self._internal_loss, tf.keras.losses.Loss):
-            d["interal"] = self._internal_loss.get_config()
-        elif hasattr(self._internal_loss, "_keras_api_names"):
-            d["interal"] = self._internal_loss._keras_api_names[0]
-        else:
-            d["interal"] = repr(self._internal_loss)
+            d["internal"] = self._internal_loss.get_config()
         return d
 
+    @classmethod
     def from_config(cls, config):
-        internal = tf.keras.losses.Loss.from_config(config.pop("internal"))
-        config["loss"] = internal
+        if "internal" in config:
+            d = config.pop("internal")
+            internal = tf.keras.losses.deserialize(d["name"])
+            config["loss"] = internal
         return super(SparseLoss, cls).from_config(config)
 
 
