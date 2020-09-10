@@ -11,9 +11,7 @@ class Model(Registerable):
     _REGISTRY = _MODELS
 
     def __init__(self, loss=None, optimizer=None):
-        self._loss = loss or SparseLoss(
-            loss=tf.keras.losses.MeanSquaredError(), name="sparse_loss"
-        )
+        self._loss = loss or SparseLoss(name="sparse_loss")
         self._optimizer = optimizer or tf.keras.optimizers.Adamax
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:
@@ -107,6 +105,7 @@ class BiLSTMClassifierModel(Model):
             )
         )
         model.add(forward)
+        model.add(tf.keras.layers.Dropout(rate=0.1))
         model.add(
             tf.keras.layers.Dense(
                 output_size,
@@ -115,7 +114,6 @@ class BiLSTMClassifierModel(Model):
                 activation=tf.keras.activations.sigmoid,
             )
         )
-        model.add(tf.keras.layers.Dropout(rate=0.1))
         return model
 
 
