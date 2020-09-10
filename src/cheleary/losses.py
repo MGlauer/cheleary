@@ -23,7 +23,7 @@ class CustomLoss(tf.keras.losses.Loss):
 class SparseLoss(CustomLoss):
     def __init__(self, loss: tf.losses.Loss = None, **kwargs):
         super(SparseLoss, self).__init__(**kwargs)
-        self._internal_loss = loss or tf.keras.losses.MeanSquaredError()
+        self._internal_loss = loss or tf.keras.losses.BinaryCrossentropy()
 
     def call(self, y_true, y_pred):
         y_true = math_ops.cast(y_true, y_pred.dtype)

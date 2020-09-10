@@ -25,13 +25,14 @@ class Model(Registerable):
             optimizer=self._optimizer(learning_rate=learning_rate),
             loss=self._loss,
             metrics=[
-                "mae",
-                "mse",
-                "acc",
-                "binary_crossentropy",
-                tf.metrics.Precision(),
-                tf.metrics.Recall(),
-                tfa.metrics.F1Score(num_classes=kwargs.get("output_size", 500)),
+                tf.metrics.MeanSquaredError(),
+                tf.metrics.BinaryAccuracy(threshold=0.2),
+                tf.metrics.BinaryCrossentropy(),
+                tf.metrics.Precision(thresholds=0.2),
+                tf.metrics.Recall(thresholds=0.2),
+                tfa.metrics.F1Score(
+                    threshold=0.2, num_classes=kwargs.get("output_size", 500)
+                ),
             ],
         )
         self.model = model
