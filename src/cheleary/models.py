@@ -115,6 +115,7 @@ class BiLSTMClassifierModel(Model):
                 activation=tf.keras.activations.sigmoid,
             )
         )
+        model.add(tf.keras.layers.Dropout(rate=0.1))
         return model
 
 
