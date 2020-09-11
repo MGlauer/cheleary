@@ -129,11 +129,10 @@ class LearningTask:
     def run(self, epochs=1):
         dataset = self.dataprocessor.load_data(kind="train", loop=True)
         # Drop unencoded data from dataset
-        dataset = ((x[1], y) for x, y in dataset)
-        x_test, y_test = tuple(zip(*self.dataprocessor.load_data(kind="test")))
-        x_test = [x[1] for x in x_test]
-        # x_test = [x for (x, _) in self.dataprocessor.load_data(kind="test")]
-        # y_test = [y for (_, y) in self.dataprocessor.load_data(kind="test")]
+        dataset = [(x, y) for cid, smiles, x, y in dataset]
+        cids, smiles, x_test, y_test = tuple(
+            zip(*self.dataprocessor.load_data(kind="test"))
+        )
         print("Start training")
         self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")

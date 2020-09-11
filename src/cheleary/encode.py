@@ -418,7 +418,7 @@ class SmilesAtomEncoder(Encoder):
         raise (None, self.__input_lenth)
 
     def run(self, input):
-        return [i for smiles in _tokenize(input) for i in self._encode_token(smiles)]
+        return [i for smiles in _tokenize(input[1]) for i in self._encode_token(smiles)]
 
     def _encode_token(self, token):
         t, x = token
@@ -1063,7 +1063,7 @@ class CharacterOrdEncoder(Encoder):
         raise (None, 1)
 
     def run(self, input):
-        return [ord(c) for c in input]
+        return np.asarray([[ord(c) for c in input[1]]])
 
 
 class ChebiClassEncoder(Encoder):
@@ -1589,4 +1589,4 @@ class IntEncoder(Encoder):
         raise (None, 1)
 
     def run(self, input):
-        return [int(c) for c in input]
+        return np.asarray([[int(c) for c in input[2:]]])

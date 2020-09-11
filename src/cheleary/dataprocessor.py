@@ -23,7 +23,7 @@ class DataProcessor:
                 raise ValueError(
                     "A data processor needs a raw data path or a data path"
                 )
-            self.data_path = f'.data/cache/{os.path.basename(raw_data_path).split(".")[0]}/split_{int(split*100)}'
+            self.data_path = f".data/cache/{input_encoder._ID}/"
         else:
             self.data_path = data_path
         self.raw_data_path = raw_data_path
@@ -47,49 +47,28 @@ class DataProcessor:
     def output_datatype(self):
         raise NotImplementedError
 
-    def generate_data(self, kind="train", loop=False):
-        with open(self.raw_data_path, "rb") as output:
-            # pickle.dump(chemdata,output)
-            chemdata = pickle.load(output)
-
-        # with mp.Pool(mp.cpu_count() - 2) as pool:
-        if LOCAL_SIZE_RESTRICTION != -1:
-            stream = (x for x in list(chemdata.iterrows())[:LOCAL_SIZE_RESTRICTION])
-        else:
-            stream = chemdata.iterrows()
-        for result in stream:
-            yield result[1][1], result[1][2:]
+    def encode_row(self, row):
+        return (
+            row[0],
+            row[1],
+            self.input_encoder.run(row),
+            self.output_encoder.run(row),
+        )
 
     def load_data(self, kind="train", loop=False, cached=True):
         if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
-            print("No cached data found. Create new cache.")
-            os.makedirs(self.data_path, exist_ok=True)
-            data = list(self.generate_data())[:LOCAL_SIZE_RESTRICTION]
-            shuffle(data)
-            train_amount = int(len(data) * self.split)
-            test_amount = int(len(data) * (1 - self.split) / 2)
-            eval_amount = len(data) - (train_amount + test_amount)
-            for _kind, l, r in [
-                ("train", 0, train_amount),
-                ("test", train_amount, train_amount + test_amount),
-                ("eval", train_amount + test_amount, -1),
-            ]:
+            os.makedirs(self.data_path)
+            for _kind in ["train", "test", "eval"]:
+                with open(self.raw_data_path, "rb") as output:
+                    chemdata = pickle.load(output)
                 with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
                     pickle.dump(
-                        [
-                            (
-                                ([x], np.asarray([self.input_encoder.run(x)])),
-                                np.asarray([self.output_encoder.run(y)]),
-                            )
-                            for x, y in data[l:r]
-                        ],
+                        chemdata[:LOCAL_SIZE_RESTRICTION].apply(
+                            self.encode_row, axis=1
+                        ),
                         pkl,
                     )
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
             print("Use data cached at", self.data_path)
             data = pickle.load(pkl)
-            while True:
-                for x, y in data:
-                    yield x, y
-                if not loop:
-                    break
+            return data
