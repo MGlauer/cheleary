@@ -19,15 +19,8 @@ class DataProcessor:
         output_encoder: Encoder = None,
     ):
         self.split = split
-        if data_path is None:
-            if raw_data_path is None:
-                raise ValueError(
-                    "A data processor needs a raw data path or a data path"
-                )
-            self.data_path = f".data/cache/{input_encoder._ID}/"
-        else:
-            self.data_path = data_path
-        self.raw_data_path = raw_data_path
+        self.raw_data_path = raw_data_path or ".data/splits"
+        self.data_path = data_path or f".data/cache/{input_encoder._ID}/"
         self.input_encoder = input_encoder
         self.output_encoder = output_encoder
         self.length = int(sum(1 for _ in self.load_data(kind="train")))
@@ -60,8 +53,10 @@ class DataProcessor:
         if not os.path.exists(os.path.join(self.data_path, f"{kind}.pkl")):
             os.makedirs(self.data_path)
             for _kind in ["train", "test", "eval"]:
-                with open(self.raw_data_path, "rb") as output:
-                    chemdata = pickle.load(output)[:LOCAL_SIZE_RESTRICTION]
+                with open(
+                    os.path.join(self.raw_data_path, f"{_kind}.pkl"), "rb"
+                ) as output:
+                    chemdata = pickle.load(output)
                 with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
                     features = chemdata.apply(self.input_encoder.run, axis=1)
                     labels = chemdata.apply(self.output_encoder.run, axis=1)
