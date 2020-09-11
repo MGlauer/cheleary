@@ -115,11 +115,9 @@ class LearningTask:
             json.dump(self.config, f)
 
     def test_model(self, training_data, path=None):
-        mse_total = 0
-        counter = 0
         self.model.summary()
         if not path:
-            path = os.path.join(self._version_root, "test.csv")
+            path = os.path.join("test.csv")
         with open(path, "w") as fout:
             for (x_real_batch, x_encoded), y_batch in training_data:
                 y_pred_batch = self.model.predict(x_encoded)
