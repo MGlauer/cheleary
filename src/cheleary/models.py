@@ -88,6 +88,9 @@ class BiLSTMClassifierModel(Model):
 
     def create_model(self, input_size=300, output_size=500):
         model = tf.keras.Sequential()
+
+        model.add(tf.keras.layers.InputLayer(input_shape=(None,), ragged=True))
+
         model.add(
             tf.keras.layers.Embedding(
                 input_size, 100, input_shape=(None,), name="inputs"

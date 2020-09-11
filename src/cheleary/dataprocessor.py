@@ -3,6 +3,7 @@ from random import shuffle
 import pickle
 from cheleary.config import LOCAL_SIZE_RESTRICTION
 from cheleary.encode import Encoder
+import tensorflow as tf
 import numpy as np
 
 _DPS = {}
@@ -60,15 +61,20 @@ class DataProcessor:
             os.makedirs(self.data_path)
             for _kind in ["train", "test", "eval"]:
                 with open(self.raw_data_path, "rb") as output:
-                    chemdata = pickle.load(output)
+                    chemdata = pickle.load(output)[:LOCAL_SIZE_RESTRICTION]
                 with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
+                    features = chemdata.apply(self.input_encoder.run, axis=1)
+                    labels = chemdata.apply(self.output_encoder.run, axis=1)
+
                     pickle.dump(
-                        chemdata[:LOCAL_SIZE_RESTRICTION].apply(
-                            self.encode_row, axis=1
+                        (
+                            chemdata["MOLECULEID"],
+                            chemdata["SMILES"],
+                            tf.ragged.constant(features),
+                            tf.convert_to_tensor(labels.tolist()),
                         ),
                         pkl,
                     )
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
             print("Use data cached at", self.data_path)
-            data = pickle.load(pkl)
-            return data
+            return pickle.load(pkl)

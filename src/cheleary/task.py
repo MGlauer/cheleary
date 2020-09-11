@@ -55,7 +55,7 @@ class LearningTask:
     def create_model(self):
         raise NotImplementedError
 
-    def train_model(self, data, test_data=None, epochs=1):
+    def train_model(self, x, y, test_data=None, epochs=1):
         self._prev_epochs.append(epochs)
         self.model.summary()
         cp_name = "{epoch:03d}"
@@ -77,8 +77,10 @@ class LearningTask:
         early_stop = tf.keras.callbacks.EarlyStopping(
             patience=25, restore_best_weights=True
         )
+
         self.model.fit(
-            data,
+            x,
+            y,
             epochs=self.last_epoch + epochs,
             shuffle=True,
             callbacks=[
@@ -127,14 +129,10 @@ class LearningTask:
                     fout.write(",".join(map(str, y_real)) + "\n")
 
     def run(self, epochs=1):
-        dataset = self.dataprocessor.load_data(kind="train", loop=True)
-        # Drop unencoded data from dataset
-        dataset = [(x, y) for cid, smiles, x, y in dataset]
-        cids, smiles, x_test, y_test = tuple(
-            zip(*self.dataprocessor.load_data(kind="test"))
-        )
+        _, _, x, y = self.dataprocessor.load_data(kind="train", loop=True)
+        _, _, x_test, y_test = self.dataprocessor.load_data(kind="test")
         print("Start training")
-        self.train_model(dataset, test_data=(x_test, y_test), epochs=epochs)
+        self.train_model(x, y, test_data=(x_test, y_test), epochs=epochs)
         print("Stop training")
 
     def test(self, path=None):

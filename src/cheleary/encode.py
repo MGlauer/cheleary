@@ -1063,7 +1063,7 @@ class CharacterOrdEncoder(Encoder):
         raise (None, 1)
 
     def run(self, input):
-        return np.asarray([[ord(c) for c in input[1]]])
+        return np.asarray([ord(c) for c in input[1]])
 
 
 class ChebiClassEncoder(Encoder):
@@ -1589,4 +1589,4 @@ class IntEncoder(Encoder):
         raise (None, 1)
 
     def run(self, input):
-        return np.asarray([[int(c) for c in input[2:]]])
+        return [int(c) for c in input[2:]]
