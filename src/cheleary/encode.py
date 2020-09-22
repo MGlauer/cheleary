@@ -1627,7 +1627,7 @@ class IntEncoder(Encoder):
 try:
     import rdkit
 except Exception as e:
-    raise e
+    pass
 else:
 
     class FingerprintEncoder(Encoder):
