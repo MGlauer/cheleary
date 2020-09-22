@@ -397,7 +397,7 @@ class SmilesAtomEncoder(Encoder):
         assert len(self.__atom_chars) == 118 + 8, len(self.__atom_chars)
         self.__modifier_chars = ["+", "++", "-", "--", "@", "@@", "@+", "@@+", ":"]
         self.__bond_chars = [".", "-", "=", "#", "$", "/", "\\"]
-        self.__branch_chars = ["(", ")"]
+        self.__branch_chars = ["(", ")", "[", "]"]
         self.__mults = 12
         self.__mult_regex = "|".join(map(str, range(1, self.__mults + 1)))
         self.__input_lenth = (
@@ -420,6 +420,22 @@ class SmilesAtomEncoder(Encoder):
     def run(self, input):
         return [i for smiles in _tokenize(input[1]) for i in self._encode_token(smiles)]
 
+    d = {}
+
+    def break_on_inconsistent(f):
+        def inner(*args):
+            self = args[0]
+            x = tuple(args[1:])
+            y = tuple(f(*args))
+            if x in self.d:
+                assert self.d[y] == x, f"d({y})={x} != {self.d[y]}"
+            else:
+                self.d[y] = x
+            return y
+
+        return inner
+
+    @break_on_inconsistent
     def _encode_token(self, token):
         t, x = token
         offset = 0
@@ -431,11 +447,15 @@ class SmilesAtomEncoder(Encoder):
                 rf"(?P<modifier>{'|'.join(map(re.escape, self.__modifier_chars))})?"
                 rf"(?P<multiplicity_1>{self.__mult_regex})?$"
             )
-            for y in ["[", "]"]:
-                x = x.replace(y, "")
+            in_brackets = False
+            if x[0] == "[":
+                in_brackets = True
+                for y in ["[", "]"]:
+                    x = x.replace(y, "")
+            yield offset
             match = regex.match(x)
             if match is not None:
-                offset = 0
+                offset = 1
                 if match.group("atoms"):
                     for i in self._encode_atoms(match.group("atoms")):
                         yield i + offset
@@ -461,12 +481,22 @@ class SmilesAtomEncoder(Encoder):
                         ) + offset + self.__mults * i
             else:
                 raise Exception("Could not encode atom", x)
+            offset += (
+                len(self.__atom_chars)
+                + len(self.__modifier_chars)
+                + 1
+                + 2 * self.__mults
+            )
+            if in_brackets:
+                yield offset
+            offset += 1
         else:
             offset += (
                 len(self.__atom_chars)
                 + len(self.__modifier_chars)
                 + 1
                 + 2 * self.__mults
+                + 2
             )
             if t == TokenType.BOND_TYPE or t == TokenType.EZSTEREO:
                 yield self.__bond_chars.index(x) + offset
@@ -493,6 +523,8 @@ class SmilesAtomEncoder(Encoder):
 
 
 class AtomOrdEncoder(Encoder):
+    ID = "AOE"
+
     def __init__(self):
         super(AtomOrdEncoder, self).__init__()
         __tokens = {
@@ -1590,3 +1622,17 @@ class IntEncoder(Encoder):
 
     def run(self, input):
         return [int(c) for c in input[2:]]
+
+
+try:
+    import rdkit
+except Exception as e:
+    raise e
+else:
+
+    class FingerprintEncoder(Encoder):
+        _ID = "FE"
+
+        def run(self, input):
+            mol = rdkit.Chem.MolFromSmiles(input[1])
+            return rdkit.Chem.RDKFingerprint(mol, fpSize=1024)

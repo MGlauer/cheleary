@@ -60,12 +60,15 @@ class DataProcessor:
                 with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
                     features = chemdata.apply(self.input_encoder.run, axis=1)
                     labels = chemdata.apply(self.output_encoder.run, axis=1)
-
+                    if len(set(map(len, features))) > 1:
+                        input_tensor = tf.ragged.constant(features)
+                    else:
+                        input_tensor = tf.convert_to_tensor(features.tolist())
                     pickle.dump(
                         (
                             chemdata["MOLECULEID"],
                             chemdata["SMILES"],
-                            tf.ragged.constant(features),
+                            input_tensor,
                             tf.convert_to_tensor(labels.tolist()),
                         ),
                         pkl,

@@ -45,6 +45,47 @@ class Model(Registerable):
         return "\n".join(s)
 
 
+class NPClassifierModel(Model):
+    _ID = "np_classifier"
+
+    def create_model(self, input_size=300, output_size=500):
+
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.InputLayer(input_shape=1024))
+        model.add(
+            tf.keras.layers.Dense(
+                6144, activation=tf.keras.activations.tanh, use_bias=True,
+            )
+        )
+        model.add(tf.keras.layers.BatchNormalization())
+        model.add(
+            tf.keras.layers.Dense(
+                3072, activation=tf.keras.activations.tanh, use_bias=True,
+            )
+        )
+        model.add(tf.keras.layers.BatchNormalization())
+        model.add(
+            tf.keras.layers.Dense(
+                1536, activation=tf.keras.activations.tanh, use_bias=True,
+            )
+        )
+        model.add(tf.keras.layers.BatchNormalization())
+
+        model.add(
+            tf.keras.layers.Dense(
+                1536, activation=tf.keras.activations.tanh, use_bias=True,
+            )
+        )
+        model.add(tf.keras.layers.BatchNormalization())
+        model.add(tf.keras.layers.Dropout(rate=0.2))
+
+        model.add(
+            tf.keras.layers.Dense(output_size, activation=tf.keras.activations.sigmoid)
+        )
+
+        return model
+
+
 class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
