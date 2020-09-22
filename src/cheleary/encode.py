@@ -1624,15 +1624,14 @@ class IntEncoder(Encoder):
         return [int(c) for c in input[2:]]
 
 
-try:
-    import rdkit
-except Exception as e:
-    pass
-else:
+class FingerprintEncoder(Encoder):
+    _ID = "FE"
 
-    class FingerprintEncoder(Encoder):
-        _ID = "FE"
-
-        def run(self, input):
+    def run(self, input):
+        try:
+            import rdkit
+        except Exception as e:
+            raise e
+        else:
             mol = rdkit.Chem.MolFromSmiles(input[1])
             return rdkit.Chem.RDKFingerprint(mol, fpSize=1024)
