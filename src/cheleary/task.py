@@ -1,6 +1,7 @@
 import os
 import tensorflow as tf
-import tensorflow_addons as tfa
+
+# import tensorflow_addons as tfa
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.encode import Encoder
@@ -38,7 +39,7 @@ class LearningTask:
                 os.path.join(self._model_root, "checkpoints", last),
                 custom_objects={
                     "SparseLoss": SparseLoss,
-                    "F1Score": tfa.metrics.F1Score,
+                    # "F1Score": tfa.metrics.F1Score,
                 },
                 compile=True,
             )

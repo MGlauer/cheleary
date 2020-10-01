@@ -57,22 +57,29 @@ class DataProcessor:
                     os.path.join(self.raw_data_path, f"{_kind}.pkl"), "rb"
                 ) as output:
                     chemdata = pickle.load(output)
-                with open(os.path.join(self.data_path, f"{_kind}.pkl"), "wb") as pkl:
+
                     features = chemdata.apply(self.input_encoder.run, axis=1)
                     labels = chemdata.apply(self.output_encoder.run, axis=1)
+                    # Filter invalid rows
+                    filter = features.notna()
+                    features = features[filter]
+                    labels = labels[filter]
                     if len(set(map(len, features))) > 1:
                         input_tensor = tf.ragged.constant(features)
                     else:
                         input_tensor = tf.convert_to_tensor(features.tolist())
-                    pickle.dump(
-                        (
-                            chemdata["MOLECULEID"],
-                            chemdata["SMILES"],
-                            input_tensor,
-                            tf.convert_to_tensor(labels.tolist()),
-                        ),
-                        pkl,
-                    )
+                    with open(
+                        os.path.join(self.data_path, f"{_kind}.pkl"), "wb"
+                    ) as pkl:
+                        pickle.dump(
+                            (
+                                chemdata["MOLECULEID"],
+                                chemdata["SMILES"],
+                                input_tensor,
+                                tf.convert_to_tensor(labels.tolist()),
+                            ),
+                            pkl,
+                        )
         with open(os.path.join(self.data_path, f"{kind}.pkl"), "rb") as pkl:
             print("Use data cached at", self.data_path)
             return pickle.load(pkl)

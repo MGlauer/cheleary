@@ -74,6 +74,7 @@ def analyze(in_path, out_path):
     an(in_path, out_path)
 
 
+"""
 try:
     from chebidblite.learnhelper import ChebiDataPreparer
 except ModuleNotFoundError:
@@ -97,6 +98,7 @@ else:
         chemdata = dprep.getDataForDeepLearning(10, 50)
         with open(path, "wb") as outf:
             pickle.dump(chemdata, outf)
+"""
 
 
 def _list_registerables(reg_cls):

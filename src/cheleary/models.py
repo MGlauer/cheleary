@@ -1,5 +1,6 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
+
+# import tensorflow_addons as tfa
 from cheleary.registry import Registerable
 from cheleary.losses import SparseLoss
 
@@ -29,9 +30,9 @@ class Model(Registerable):
                 tf.metrics.BinaryCrossentropy(),
                 tf.metrics.Precision(thresholds=0.2),
                 tf.metrics.Recall(thresholds=0.2),
-                tfa.metrics.F1Score(
-                    threshold=0.2, num_classes=kwargs.get("output_size", 500)
-                ),
+                # tfa.metrics.F1Score(
+                #    threshold=0.2, num_classes=kwargs.get("output_size", 500)
+                # ),
             ],
         )
         self.model = model
@@ -56,23 +57,18 @@ class NPClassifierModel(Model):
         self.learning_rate = 0.00001
 
     def create_model(self, input_size=300, output_size=500):
+        input_f = tf.keras.layers.Input(shape=(2048 + 4096,))
 
-        model = tf.keras.Sequential()
-        model.add(tf.keras.layers.InputLayer(input_shape=1024))
-        model.add(tf.keras.layers.Dense(6144, activation="relu",))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Dense(3072, activation="relu",))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Dense(1536, activation="relu",))
-        model.add(tf.keras.layers.BatchNormalization())
-
-        model.add(tf.keras.layers.Dense(1536, activation="relu",))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Dropout(rate=0.2))
-
-        model.add(
-            tf.keras.layers.Dense(output_size, activation=tf.keras.activations.sigmoid)
-        )
+        X = tf.keras.layers.Dense(6144, activation="relu")(input_f)
+        X = tf.keras.layers.BatchNormalization()(X)
+        X = tf.keras.layers.Dense(3072, activation="relu")(X)
+        X = tf.keras.layers.BatchNormalization()(X)
+        X = tf.keras.layers.Dense(1536, activation="relu")(X)
+        X = tf.keras.layers.BatchNormalization()(X)
+        X = tf.keras.layers.Dense(1536, activation="relu")(X)
+        X = tf.keras.layers.Dropout(0.2)(X)
+        output = tf.keras.layers.Dense(output_size, activation="sigmoid")(X)
+        model = tf.keras.Model(inputs=[input_f], outputs=output)
 
         return model
 
