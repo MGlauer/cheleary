@@ -10,17 +10,18 @@ _MODELS = {}
 class Model(Registerable):
     _REGISTRY = _MODELS
 
-    def __init__(self, loss=None, optimizer=None):
-        self._loss = loss or SparseLoss(name="sparse_loss")
-        self._optimizer = optimizer or tf.keras.optimizers.Adamax
+    def __init__(self):
+        self._loss = SparseLoss(name="sparse_loss")
+        self._optimizer = tf.keras.optimizers.Adamax
+        self.learning_rate = 0.001
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError
 
-    def build(self, learning_rate=0.001, **kwargs):
+    def build(self, **kwargs):
         model = self.create_model(**kwargs)
         model.compile(
-            optimizer=self._optimizer(learning_rate=learning_rate),
+            optimizer=self._optimizer(learning_rate=self.learning_rate),
             loss=self._loss,
             metrics=[
                 tf.metrics.MeanSquaredError(),
@@ -48,34 +49,24 @@ class Model(Registerable):
 class NPClassifierModel(Model):
     _ID = "np_classifier"
 
+    def __init__(self):
+        super(NPClassifierModel, self).__init__()
+        self._optimizer = tf.keras.optimizers.Adam
+        self._loss = tf.keras.losses.BinaryCrossentropy()
+        self.learning_rate = 0.00001
+
     def create_model(self, input_size=300, output_size=500):
 
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.InputLayer(input_shape=1024))
-        model.add(
-            tf.keras.layers.Dense(
-                6144, activation=tf.keras.activations.tanh, use_bias=True,
-            )
-        )
+        model.add(tf.keras.layers.Dense(6144, activation="relu",))
         model.add(tf.keras.layers.BatchNormalization())
-        model.add(
-            tf.keras.layers.Dense(
-                3072, activation=tf.keras.activations.tanh, use_bias=True,
-            )
-        )
+        model.add(tf.keras.layers.Dense(3072, activation="relu",))
         model.add(tf.keras.layers.BatchNormalization())
-        model.add(
-            tf.keras.layers.Dense(
-                1536, activation=tf.keras.activations.tanh, use_bias=True,
-            )
-        )
+        model.add(tf.keras.layers.Dense(1536, activation="relu",))
         model.add(tf.keras.layers.BatchNormalization())
 
-        model.add(
-            tf.keras.layers.Dense(
-                1536, activation=tf.keras.activations.tanh, use_bias=True,
-            )
-        )
+        model.add(tf.keras.layers.Dense(1536, activation="relu",))
         model.add(tf.keras.layers.BatchNormalization())
         model.add(tf.keras.layers.Dropout(rate=0.2))
 
