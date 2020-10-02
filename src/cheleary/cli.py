@@ -4,6 +4,7 @@ from cheleary.encode import Encoder
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.analysis import analyze as an
+from sklearn.model_selection import train_test_split
 import pickle
 import os
 
@@ -74,7 +75,6 @@ def analyze(in_path, out_path):
     an(in_path, out_path)
 
 
-"""
 try:
     from chebidblite.learnhelper import ChebiDataPreparer
 except ModuleNotFoundError:
@@ -91,14 +91,17 @@ else:
     @click.argument("path", required=True)
     def collect_dl_data(path):
         # Move this import here because it is not available everywhere
-
-        print(path)
-        print(os.getcwd())
+        os.makedirs(os.path.join(".data", "splits"), exist_ok=True)
         dprep = ChebiDataPreparer()
-        chemdata = dprep.getDataForDeepLearning(10, 50)
-        with open(path, "wb") as outf:
-            pickle.dump(chemdata, outf)
-"""
+        chemdata = dprep.getDataForDeepLearning(100, 500)
+        train, remainder = train_test_split(chemdata, shuffle=True, test_size=0.3)
+        test, eval = train_test_split(remainder, shuffle=False, test_size=0.7)
+        d = {"test": test, "train": train, "eval": eval}
+        for kind in ["train", "test", "eval"]:
+            with open(os.path.join(".data", "splits", f"{kind}.pkl"), "wb") as pkl:
+                pickle.dump(
+                    d[kind], pkl,
+                )
 
 
 def _list_registerables(reg_cls):

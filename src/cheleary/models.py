@@ -73,6 +73,24 @@ class NPClassifierModel(Model):
         return model
 
 
+class ConvModel(Model):
+    _ID = "conv"
+
+    def create_model(self, input_size=1024, output_size=500):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.Input(shape=(input_size,)))
+        model.add(tf.keras.layers.Reshape(target_shape=(input_size, 1)))
+        model.add(tf.keras.layers.Conv1D(5, 5))
+        model.add(tf.keras.layers.MaxPool1D())
+        model.add(tf.keras.layers.Conv1D(10, 5))
+        model.add(tf.keras.layers.MaxPool1D())
+        model.add(tf.keras.layers.Conv1D(20, 5))
+        model.add(tf.keras.layers.MaxPool1D())
+        model.add(tf.keras.layers.Flatten())
+        model.add(tf.keras.layers.Dense(500, activation=tf.keras.activations.sigmoid))
+        return model
+
+
 class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
