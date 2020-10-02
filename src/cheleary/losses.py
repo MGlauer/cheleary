@@ -33,8 +33,7 @@ class SparseLoss(CustomLoss):
         zeros = tf.math.reduce_sum(1 - y_true)
         # weight ones with the number of zeros and vice versa
         weights = y_true * zeros + (1 - y_true) * ones
-        squares = self._internal_loss(y_true, y_pred)
-        return tf.reduce_mean(weights * squares)
+        return tf.reduce_mean((weights * (y_true - y_pred)) ** 2)
 
     def get_config(self):
         d = super(SparseLoss, self).get_config()
