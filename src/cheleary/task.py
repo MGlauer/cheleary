@@ -20,6 +20,7 @@ class LearningTask:
         split=0.7,
         prev_epochs=None,
         load_model=False,
+        load_best=False,
     ):
 
         self.identifier = identifier
@@ -32,11 +33,13 @@ class LearningTask:
 
         self.last_epoch = 0
         if load_model:
-            last = max(os.listdir(os.path.join(self._model_root, "checkpoints")))
+            folder = "best" if load_best else "checkpoints"
+            last = max(os.listdir(os.path.join(self._model_root, folder)))
             self.last_epoch = int(last)
-            print(f"Load model", last)
+            path = os.path.join(self._model_root, folder, last)
+            print(f"Load model", path)
             self.model = tf.keras.models.load_model(
-                os.path.join(self._model_root, "checkpoints", last),
+                path,
                 custom_objects={
                     "SparseLoss": SparseLoss,
                     # "F1Score": tfa.metrics.F1Score,
@@ -120,14 +123,19 @@ class LearningTask:
     def test_model(self, training_data, path=None):
         self.model.summary()
         if not path:
-            path = os.path.join("test.csv")
+            path = os.path.join(self._model_root, "test.csv")
         with open(path, "w") as fout:
-            for (x_real_batch, x_encoded), y_batch in training_data:
-                y_pred_batch = self.model.predict(x_encoded)
-                for x_real, y_real, y_pred in zip(x_real_batch, y_batch, y_pred_batch):
-                    fout.write(str(x_real) + "\n")
-                    fout.write(",".join(map(str, y_pred[:])) + "\n")
-                    fout.write(",".join(map(str, y_real)) + "\n")
+            ids, smiles, features, labels = training_data
+            pred = self.model.predict(features)
+            for cid, smile, y_real, y_pred in zip(ids, smiles, labels.numpy(), pred):
+                fout.write(
+                    cid
+                    + ","
+                    + smile
+                    + ","
+                    + (",".join(map(lambda x: str(int(x)), y_real)) + "\n")
+                )
+                fout.write(",," + (",".join(map(str, y_pred)) + "\n"))
 
     def run(self, epochs=1):
         _, _, x, y = self.dataprocessor.load_data(kind="train", loop=True)
@@ -155,18 +163,29 @@ class LearningTask:
         return json.dumps(self.config)
 
 
-def load_task(identifier):
+def load_task(identifier, load_best=False):
     with open(os.path.join(".tasks", identifier, "config.json")) as fin:
         config = json.load(fin)
-    return load_from_strings(**config, load_model=True)
+    return load_from_strings(**config, load_model=True, load_best=load_best)
 
 
 def load_from_strings(
-    identifier, data_path, input_encoder, model, output_encoder, load_model=False,
+    identifier,
+    data_path,
+    input_encoder,
+    model,
+    output_encoder,
+    load_model=False,
+    load_best=False,
 ):
     m = tf.keras.models.model_from_json(model)
     m.compile()
     ie = Encoder.get(input_encoder)()
     oe = Encoder.get(output_encoder)()
     dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
-    return LearningTask(identifier=identifier, dataprocessor=dp, load_model=load_model,)
+    return LearningTask(
+        identifier=identifier,
+        dataprocessor=dp,
+        load_model=load_model,
+        load_best=load_best,
+    )
