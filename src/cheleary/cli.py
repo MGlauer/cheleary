@@ -64,7 +64,7 @@ def cont(task_id, epochs):
 @click.argument("task_id", required=True)
 @click.option("--path", default=None)
 def test(task_id, path):
-    t = load_task(task_id)
+    t = load_task(task_id, load_best=True)
     t.test(path)
 
 
