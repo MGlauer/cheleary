@@ -14,7 +14,7 @@ class Model(Registerable):
     def __init__(self):
         self._loss = SparseLoss(name="sparse_loss")
         self._optimizer = tf.keras.optimizers.Adam
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
 
     def create_model(self, **kwargs) -> tf.keras.models.Model:
         raise NotImplementedError
