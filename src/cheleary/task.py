@@ -81,7 +81,6 @@ class LearningTask:
         early_stop = tf.keras.callbacks.EarlyStopping(
             patience=25, restore_best_weights=True
         )
-
         self.model.fit(
             x,
             y,
@@ -94,8 +93,6 @@ class LearningTask:
                 early_stop,
             ],
             verbose=2,
-            batch_size=1,
-            steps_per_epoch=self.dataprocessor.length,
             validation_data=test_data,
             initial_epoch=self.last_epoch,
         )
