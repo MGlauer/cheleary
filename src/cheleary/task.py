@@ -90,7 +90,7 @@ class LearningTask:
                 log_callback,
                 checkpoint_callback,
                 checkpoint_callback_best,
-                early_stop,
+                # early_stop,
             ],
             verbose=2,
             validation_data=test_data,
