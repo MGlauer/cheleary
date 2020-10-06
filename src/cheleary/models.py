@@ -94,6 +94,10 @@ class ConvModel(Model):
 class LSTMClassifierModel(Model):
     _ID = "lstm_classifier"
 
+    def __init__(self):
+        super().__init__()
+        self.learning_rate = 0.001
+
     def create_model(self, input_size=300, output_size=500):
 
         model = tf.keras.Sequential()
@@ -118,6 +122,7 @@ class LSTMClassifierModel(Model):
                 1000, use_bias=True, activation=tf.keras.activations.tanh,
             )
         )
+        model.add(tf.keras.layers.Dropout(0.2))
         model.add(
             tf.keras.layers.Dense(
                 output_size,
@@ -131,6 +136,10 @@ class LSTMClassifierModel(Model):
 
 class BiLSTMClassifierModel(Model):
     _ID = "bi_lstm_classifier"
+
+    def __init__(self):
+        super().__init__()
+        self.learning_rate = 0.001
 
     def create_model(self, input_size=300, output_size=500):
         model = tf.keras.Sequential()
