@@ -154,7 +154,7 @@ class BiLSTMClassifierModel(Model):
         )
         forward = tf.keras.layers.Bidirectional(
             tf.keras.layers.LSTM(
-                1000,
+                100,
                 activation=tf.keras.activations.tanh,
                 recurrent_activation=tf.keras.activations.sigmoid,
                 name="forward",
@@ -164,7 +164,12 @@ class BiLSTMClassifierModel(Model):
             )
         )
         model.add(forward)
-        model.add(tf.keras.layers.Dropout(rate=0.1))
+        model.add(
+            tf.keras.layers.Dense(
+                1000, use_bias=True, activation=tf.keras.activations.relu,
+            )
+        )
+        model.add(tf.keras.layers.Dropout(rate=0.2))
         model.add(
             tf.keras.layers.Dense(
                 output_size,
