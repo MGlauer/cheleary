@@ -135,6 +135,16 @@ class LearningTask:
                 )
                 fout.write(",," + (",".join(map(str, y_pred)) + "\n"))
 
+    def eval_model(self, training_data, path=None):
+        self.model.summary()
+        threshold = 0.5
+        if not path:
+            path = os.path.join(self._model_root, "eval.csv")
+        with open(path, "w") as fout:
+            ids, smiles, features, labels = training_data
+            res = self.model.evaluate(features, labels, return_dict=True)
+            return res
+
     def run(self, epochs=1):
         _, _, x, y = self.dataprocessor.load_data(kind="train", loop=True)
         _, _, x_test, y_test = self.dataprocessor.load_data(kind="test")
@@ -146,6 +156,11 @@ class LearningTask:
         dataset = self.dataprocessor.load_data(kind="test")
         print("Start testing")
         self.test_model(dataset, path=path)
+
+    def eval(self, path=None):
+        dataset = self.dataprocessor.load_data(kind="test")
+        print("Start evaluation")
+        self.eval_model(dataset, path=path)
 
     @property
     def config(self):

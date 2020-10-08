@@ -68,6 +68,14 @@ def test(task_id, path):
     t.test(path)
 
 
+@cli.command("eval", help="Load existing task and run tests with cached test data.")
+@click.argument("task_id", required=True)
+@click.option("--path", default=None)
+def eval(task_id, path):
+    t = load_task(task_id, load_best=True)
+    t.eval(path)
+
+
 @cli.command("analyze")
 @click.argument("in-path", required=True)
 @click.argument("out-path", required=True)
