@@ -96,7 +96,8 @@ class LSTMClassifierModel(Model):
 
     def __init__(self):
         super().__init__()
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0005
+        self._loss = tf.keras.losses.BinaryCrossentropy()
 
     def create_model(self, input_size=300, output_size=500):
 
@@ -119,7 +120,7 @@ class LSTMClassifierModel(Model):
         model.add(forward)
         model.add(
             tf.keras.layers.Dense(
-                1000, use_bias=True, activation=tf.keras.activations.tanh,
+                1000, use_bias=True, activation=tf.keras.activations.relu,
             )
         )
         model.add(tf.keras.layers.Dropout(0.2))

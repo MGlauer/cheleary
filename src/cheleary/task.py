@@ -95,6 +95,7 @@ class LearningTask:
             verbose=2,
             validation_data=test_data,
             initial_epoch=self.last_epoch,
+            use_multiprocessing=True,
         )
         if self.last_epoch + epochs % 25:
             print("Create end-of-training checkpoint")
