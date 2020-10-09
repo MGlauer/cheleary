@@ -28,13 +28,17 @@ class SparseLoss(CustomLoss):
     def call(self, y_true, y_pred):
         y_true = math_ops.cast(y_true, y_pred.dtype)
         # count ones
-        ones = tf.math.reduce_sum(y_true[:])
+        dims = tf.shape(y_true)[0]
+        ones = tf.reshape(tf.reduce_sum(y_true, axis=1), shape=(dims, 1))
         # count zeros
-        zeros = tf.math.reduce_sum(1 - y_true)
-        total = zeros + ones
-        # weight ones with the number of zeros and vice versa
-        weights = y_true * (2 * zeros / total) + (1 - y_true) * (2 * ones / total)
-        return weights * self._internal_loss(y_true, y_pred)
+        zeros = tf.reshape(tf.reduce_sum(1 - y_true, axis=1), shape=(dims, 1))
+        # weight errors on ones with the number of zeros and vice versa
+
+        weights = tf.sqrt(y_true * zeros + (1 - y_true) * ones)
+        l = tf.square(y_true - y_pred)
+        result = weights * l
+        return tf.reduce_mean(result, axis=1)
+        # return tf.keras.losses.CosineSimilarity()(weights*y_true, weights*y_pred)
 
     def get_config(self):
         d = super(SparseLoss, self).get_config()
