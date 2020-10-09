@@ -21,15 +21,22 @@ class Model(Registerable):
 
     def build(self, **kwargs):
         model = self.create_model(**kwargs)
+        threshold = 0.5
         model.compile(
             optimizer=self._optimizer(learning_rate=self.learning_rate),
             loss=self._loss,
             metrics=[
                 tf.metrics.MeanSquaredError(),
-                tf.metrics.BinaryAccuracy(threshold=0.2),
+                tf.metrics.BinaryAccuracy(threshold=threshold),
                 tf.metrics.BinaryCrossentropy(),
-                tf.metrics.Precision(thresholds=0.2),
-                tf.metrics.Recall(thresholds=0.2),
+                tf.metrics.Precision(thresholds=threshold),
+                tf.metrics.Recall(thresholds=threshold),
+                tf.metrics.CosineSimilarity(),
+                tf.metrics.AUC(),
+                tf.metrics.TruePositives(thresholds=threshold),
+                tf.metrics.TrueNegatives(thresholds=threshold),
+                tf.metrics.FalsePositives(thresholds=threshold),
+                tf.metrics.FalseNegatives(thresholds=threshold),
                 # tfa.metrics.F1Score(
                 #    threshold=0.2, num_classes=kwargs.get("output_size", 500)
                 # ),
