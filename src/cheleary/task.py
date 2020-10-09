@@ -48,7 +48,9 @@ class LearningTask:
             )
         else:
             print(f"Build new model")
-            self.model = model.build()
+            self.model = model.build(
+                self.dataprocessor.input_shape, self.dataprocessor.output_shape
+            )
             self.save_config()
 
         if prev_epochs is None:
@@ -108,7 +110,7 @@ class LearningTask:
 
     @property
     def _model_root(self):
-        return os.path.join(".tasks", self.identifier)
+        return os.path.join(".tasks", self.dataprocessor.dataset, self.identifier)
 
     @property
     def _train_log_path(self):
@@ -116,7 +118,7 @@ class LearningTask:
 
     def save_config(self):
         os.makedirs(self._model_root)
-        with open(os.path.join(".tasks", self.identifier, "config.json"), "w") as f:
+        with open(os.path.join(self._model_root, "config.json"), "w") as f:
             json.dump(self.config, f)
 
     def test_model(self, training_data, path=None):
@@ -167,7 +169,7 @@ class LearningTask:
     def config(self):
         return dict(
             identifier=self.identifier,
-            data_path=self.dataprocessor.data_path,
+            dataset=self.dataprocessor.dataset,
             input_encoder=self.dataprocessor.input_encoder._ID,
             model=self.model.to_json(),
             output_encoder=self.dataprocessor.output_encoder._ID,
@@ -185,7 +187,7 @@ def load_task(identifier, load_best=False):
 
 def load_from_strings(
     identifier,
-    data_path,
+    dataset,
     input_encoder,
     model,
     output_encoder,
@@ -196,7 +198,7 @@ def load_from_strings(
     m.compile()
     ie = Encoder.get(input_encoder)()
     oe = Encoder.get(output_encoder)()
-    dp = DataProcessor(data_path=data_path, input_encoder=ie, output_encoder=oe,)
+    dp = DataProcessor(dataset=dataset, input_encoder=ie, output_encoder=oe,)
     return LearningTask(
         identifier=identifier,
         dataprocessor=dp,

@@ -16,11 +16,13 @@ class Model(Registerable):
         self._optimizer = tf.keras.optimizers.Adam
         self.learning_rate = 0.0001
 
-    def create_model(self, **kwargs) -> tf.keras.models.Model:
+    def create_model(
+        self, input_shape, output_shape, **kwargs
+    ) -> tf.keras.models.Model:
         raise NotImplementedError
 
-    def build(self, **kwargs):
-        model = self.create_model(**kwargs)
+    def build(self, input_shape, output_shape, **kwargs):
+        model = self.create_model(input_shape, output_shape, **kwargs)
         threshold = 0.5
         model.compile(
             optimizer=self._optimizer(learning_rate=self.learning_rate),
@@ -63,8 +65,8 @@ class NPClassifierModel(Model):
         self._loss = tf.keras.losses.BinaryCrossentropy()
         self.learning_rate = 0.00001
 
-    def create_model(self, input_size=300, output_size=500):
-        input_f = tf.keras.layers.Input(shape=(2048 + 4096,))
+    def create_model(self, input_shape, output_shape, **kwargs):
+        input_f = tf.keras.layers.Input(shape=input_shape)
 
         X = tf.keras.layers.Dense(6144, activation="relu")(input_f)
         X = tf.keras.layers.BatchNormalization()(X)
@@ -74,7 +76,7 @@ class NPClassifierModel(Model):
         X = tf.keras.layers.BatchNormalization()(X)
         X = tf.keras.layers.Dense(1536, activation="relu")(X)
         X = tf.keras.layers.Dropout(0.2)(X)
-        output = tf.keras.layers.Dense(output_size, activation="sigmoid")(X)
+        output = tf.keras.layers.Dense(output_shape[-1], activation="sigmoid")(X)
         model = tf.keras.Model(inputs=[input_f], outputs=output)
 
         return model
@@ -83,10 +85,10 @@ class NPClassifierModel(Model):
 class ConvModel(Model):
     _ID = "conv"
 
-    def create_model(self, input_size=1024, output_size=500):
+    def create_model(self, input_shape, output_shape, **kwargs):
         model = tf.keras.Sequential()
-        model.add(tf.keras.layers.Input(shape=(input_size,)))
-        model.add(tf.keras.layers.Reshape(target_shape=(input_size, 1)))
+        model.add(tf.keras.layers.Input(shape=input_shape))
+        model.add(tf.keras.layers.Reshape(target_shape=(*input_shape, 1)))
         model.add(tf.keras.layers.Conv1D(5, 5))
         model.add(tf.keras.layers.MaxPool1D())
         model.add(tf.keras.layers.Conv1D(10, 5))
@@ -104,16 +106,16 @@ class LSTMClassifierModel(Model):
     def __init__(self):
         super().__init__()
         self.learning_rate = 0.001
-        # self._loss = tf.keras.losses.BinaryCrossentropy()
+        self._loss = tf.keras.losses.BinaryCrossentropy(
+            reduction=tf.keras.losses.Reduction.NONE
+        )
         self._optimizer = tf.keras.optimizers.Adamax
 
-    def create_model(self, input_size=300, output_size=500):
+    def create_model(self, input_shape, output_shape, **kwargs):
 
         model = tf.keras.Sequential()
         model.add(
-            tf.keras.layers.Embedding(
-                input_size, 100, input_shape=(None,), name="inputs"
-            )
+            tf.keras.layers.Embedding(300, 100, input_shape=(None,), name="inputs")
         )
         forward = tf.keras.layers.LSTM(
             100,
@@ -134,7 +136,7 @@ class LSTMClassifierModel(Model):
         model.add(tf.keras.layers.Dropout(0.05))
         model.add(
             tf.keras.layers.Dense(
-                output_size,
+                output_shape[-1],
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,
@@ -150,14 +152,14 @@ class BiLSTMClassifierModel(Model):
         super().__init__()
         self.learning_rate = 0.001
 
-    def create_model(self, input_size=300, output_size=500):
+    def create_model(self, input_shape, output_shape, **kwargs):
         model = tf.keras.Sequential()
 
         model.add(tf.keras.layers.InputLayer(input_shape=(None,), ragged=True))
 
         model.add(
             tf.keras.layers.Embedding(
-                input_size, 100, input_shape=(None,), name="inputs"
+                input_shape, 100, input_shape=(None,), name="inputs"
             )
         )
         forward = tf.keras.layers.Bidirectional(
@@ -180,7 +182,7 @@ class BiLSTMClassifierModel(Model):
         model.add(tf.keras.layers.Dropout(rate=0.2))
         model.add(
             tf.keras.layers.Dense(
-                output_size,
+                input_shape=output_shape[-1],
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,
@@ -192,12 +194,12 @@ class BiLSTMClassifierModel(Model):
 class BiLSTMClassifierSpreadModel(Model):
     _ID = "bi_lstm_classifier_spread"
 
-    def create_model(self, input_size=300, output_size=500):
+    def create_model(self, input_shape, output_shape, **kwargs):
 
         model = tf.keras.Sequential()
         model.add(
             tf.keras.layers.Embedding(
-                input_size, 100, input_shape=(None,), name="inputs"
+                input_shape, 100, input_shape=(None,), name="inputs"
             )
         )
         forward = tf.keras.layers.Bidirectional(
@@ -222,7 +224,7 @@ class BiLSTMClassifierSpreadModel(Model):
         )
         model.add(
             tf.keras.layers.Dense(
-                output_size,
+                input_shape,
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,

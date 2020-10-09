@@ -26,16 +26,15 @@ cli = click.Group(
 @click.argument("task_id", required=True)
 @click.argument("input_encoder_id", required=True)
 @click.argument("output_encoder_id", required=True)
-@click.option(
-    "--raw-data",
-    default=None,
-    help="Path to a raw dataset that should be used for this learning task. Cheleary will try to",
+@click.argument(
+    "dataset",
+    required=True,
+    # help="Path to a raw dataset that should be used for this learning task. Cheleary will try to",
 )
-@click.option("--data", default=None, help="Path to a data dump created by cheleary")
 @click.option("--model", default=None, help="Identifier for the model to use")
 @click.option("--epochs", default=1, help="Number of epochs to train")
-def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, epochs):
-    if os.path.exists(os.path.join(".tasks", task_id)):
+def train(task_id, input_encoder_id, output_encoder_id, dataset, model, epochs):
+    if os.path.exists(os.path.join(".tasks", dataset, task_id)):
         print(
             f"Task '{task_id}' already exists. If you want to continue learning, specify use the `continue` instead of `train`."
         )
@@ -43,10 +42,7 @@ def train(task_id, raw_data, data, input_encoder_id, output_encoder_id, model, e
     input_encoder = Encoder.get(input_encoder_id)()
     output_encoder = Encoder.get(output_encoder_id)()
     dp = DataProcessor(
-        raw_data_path=raw_data,
-        data_path=data,
-        input_encoder=input_encoder,
-        output_encoder=output_encoder,
+        dataset=dataset, input_encoder=input_encoder, output_encoder=output_encoder,
     )
     t = LearningTask(identifier=task_id, dataprocessor=dp, model=Model.get(model)())
     t.run(epochs=epochs)
@@ -101,7 +97,7 @@ else:
         # Move this import here because it is not available everywhere
         os.makedirs(os.path.join(".data", "splits"), exist_ok=True)
         dprep = ChebiDataPreparer()
-        chemdata = dprep.getDataForDeepLearning(100, 500)
+        chemdata = dprep.getDataForDeepLearning(500, 100)
         train, remainder = train_test_split(chemdata, shuffle=True, test_size=0.3)
         test, eval = train_test_split(remainder, shuffle=False, test_size=0.7)
         d = {"test": test, "train": train, "eval": eval}

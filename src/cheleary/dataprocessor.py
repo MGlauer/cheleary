@@ -12,26 +12,35 @@ _DPS = {}
 class DataProcessor:
     def __init__(
         self,
-        raw_data_path=None,
-        data_path=None,
+        dataset,
         split=0.7,
         input_encoder: Encoder = None,
         output_encoder: Encoder = None,
     ):
         self.split = split
-        self.raw_data_path = raw_data_path or ".data/splits"
-        self.data_path = data_path or f".data/cache/{input_encoder._ID}/"
+        self.dataset = dataset
         self.input_encoder = input_encoder
         self.output_encoder = output_encoder
         self.length = int(sum(1 for _ in self.load_data(kind="train")))
 
     @property
+    def raw_data_path(self):
+        return f".data/{self.dataset}/raw"
+
+    @property
+    def data_path(self):
+        return (
+            f".data/{self.dataset}/{self.input_encoder._ID}/{self.output_encoder._ID}"
+        )
+
+    @property
     def input_shape(self):
-        raise NotImplementedError
+        data = self.load_data(kind="train")
+        return data[2].shape
 
     @property
     def output_shape(self):
-        raise NotImplementedError
+        return self.load_data(kind="train")[3].shape
 
     @property
     def input_datatype(self):
