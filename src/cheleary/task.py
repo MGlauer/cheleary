@@ -93,6 +93,7 @@ class LearningTask:
                 # early_stop,
             ],
             verbose=2,
+            batch_size=128,
             validation_data=test_data,
             initial_epoch=self.last_epoch,
             use_multiprocessing=True,
