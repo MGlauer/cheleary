@@ -106,10 +106,8 @@ class LSTMClassifierModel(Model):
     def __init__(self):
         super().__init__()
         self.learning_rate = 0.001
-        self._loss = tf.keras.losses.BinaryCrossentropy(
-            reduction=tf.keras.losses.Reduction.NONE
-        )
-        self._optimizer = tf.keras.optimizers.Adamax
+        self._loss = tf.keras.losses.BinaryCrossentropy()
+        self._optimizer = tf.keras.optimizers.Adam
 
     def create_model(self, input_shape, output_shape, **kwargs):
 
@@ -118,11 +116,11 @@ class LSTMClassifierModel(Model):
             tf.keras.layers.Embedding(300, 100, input_shape=(None,), name="inputs")
         )
         forward = tf.keras.layers.LSTM(
-            100,
+            300,
             activation=tf.keras.activations.tanh,
             recurrent_activation=tf.keras.activations.sigmoid,
             name="forward",
-            recurrent_dropout=0,
+            recurrent_dropout=0.1,
             unroll=False,
             use_bias=True,
         )
@@ -136,7 +134,7 @@ class LSTMClassifierModel(Model):
         model.add(tf.keras.layers.Dropout(0.05))
         model.add(
             tf.keras.layers.Dense(
-                output_shape[-1],
+                500,
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,
