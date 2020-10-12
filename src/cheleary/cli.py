@@ -50,9 +50,10 @@ def train(task_id, input_encoder_id, output_encoder_id, dataset, model, epochs):
 
 @cli.command("continue", help="Load existing task and continue training.")
 @click.argument("task_id", required=True)
+@click.argument("dataset", required=True)
 @click.option("--epochs", default=1)
-def cont(task_id, epochs):
-    t = load_task(task_id)
+def cont(task_id, dataset, epochs):
+    t = load_task(dataset, task_id)
     t.run(epochs=epochs)
 
 

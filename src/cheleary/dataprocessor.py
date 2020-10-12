@@ -77,6 +77,10 @@ class DataProcessor:
                         input_tensor = tf.ragged.constant(features)
                     else:
                         input_tensor = tf.convert_to_tensor(features.tolist())
+                    if len(set(map(len, labels))) > 1:
+                        label_tensor = tf.ragged.constant(labels)
+                    else:
+                        label_tensor = tf.convert_to_tensor(labels.tolist())
                     with open(
                         os.path.join(self.data_path, f"{_kind}.pkl"), "wb"
                     ) as pkl:
@@ -85,7 +89,7 @@ class DataProcessor:
                                 chemdata["MOLECULEID"],
                                 chemdata["SMILES"],
                                 input_tensor,
-                                tf.convert_to_tensor(labels.tolist()),
+                                label_tensor,
                             ),
                             pkl,
                         )

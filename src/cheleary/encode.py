@@ -1611,6 +1611,13 @@ class ChebiClassEncoder(Encoder):
         ]
 
 
+class PosEncoder(Encoder):
+    _ID = "POS"
+
+    def run(self, input):
+        return [i for i in range(len(input[2:])) if input[2 + i]]
+
+
 class IntEncoder(Encoder):
     """Casts a list into a list of integers (`[int(c) for c in input]`)"""
 
@@ -1621,7 +1628,7 @@ class IntEncoder(Encoder):
         raise (None, 1)
 
     def run(self, input):
-        return [bool(c) for c in input[2:]]
+        return [int(c) for c in input[2:]]
 
 
 class FingerprintEncoder(Encoder):

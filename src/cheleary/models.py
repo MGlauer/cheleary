@@ -134,7 +134,7 @@ class LSTMClassifierModel(Model):
         model.add(tf.keras.layers.Dropout(0.05))
         model.add(
             tf.keras.layers.Dense(
-                500,
+                100,
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,
@@ -180,7 +180,7 @@ class BiLSTMClassifierModel(Model):
         model.add(tf.keras.layers.Dropout(rate=0.2))
         model.add(
             tf.keras.layers.Dense(
-                input_shape=output_shape[-1],
+                output_shape[-1],
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,

@@ -179,8 +179,8 @@ class LearningTask:
         return json.dumps(self.config)
 
 
-def load_task(identifier, load_best=False):
-    with open(os.path.join(".tasks", identifier, "config.json")) as fin:
+def load_task(dataset, identifier, load_best=False):
+    with open(os.path.join(".tasks", dataset, identifier, "config.json")) as fin:
         config = json.load(fin)
     return load_from_strings(**config, load_model=True, load_best=load_best)
 
