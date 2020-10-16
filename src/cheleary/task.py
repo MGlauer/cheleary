@@ -1,12 +1,11 @@
 import os
 import tensorflow as tf
 
-# import tensorflow_addons as tfa
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.encode import Encoder
-from cheleary.losses import CustomLoss, SparseLoss
-import numpy as np
+from cheleary.losses import SparseLoss
+import pandas as pd
 import json
 
 
@@ -32,6 +31,9 @@ class LearningTask:
         self.split = split
 
         self.last_epoch = 0
+
+        self.load_best = load_best
+
         if load_model:
             folder = "best" if load_best else "checkpoints"
             last = max(os.listdir(os.path.join(self._model_root, folder)))
@@ -121,13 +123,50 @@ class LearningTask:
         with open(os.path.join(self._model_root, "config.json"), "w") as f:
             json.dump(self.config, f)
 
-    def test_model(self, training_data, path=None):
+    def test_model(self, training_data, path=None, name="test"):
         self.model.summary()
-        if not path:
-            path = os.path.join(self._model_root, "test.csv")
-        with open(path, "w") as fout:
-            ids, smiles, features, labels = training_data
-            pred = self.model.predict(features)
+        path = path or os.path.join(
+            self._model_root, name, "best" if self.load_best else "last"
+        )
+        os.makedirs(path, exist_ok=True)
+        ids, smiles, features, labels = training_data
+        pred = self.model.predict(features)
+        tf.metrics.Precision(thresholds=0.5)(labels, pred)
+        metrics = [
+            "binary_accuracy",
+            "precision",
+            "recall",
+            "f1",
+            "cosine_similarity",
+            "area_under_roc",
+        ]
+        class_eval = pd.DataFrame(
+            (
+                (cid, *self._evaluate(labels[:, cls], pred[:, cls]))
+                for cid, cls in zip(
+                    self.dataprocessor.label_headers, range(tf.shape(labels)[1])
+                )
+            ),
+            columns=["id"] + metrics,
+        ).sort_values("f1")
+        molecule_eval = pd.DataFrame(
+            (
+                (cid, smile, *self._evaluate(labels[mol, :], pred[mol, :]))
+                for cid, smile, mol in zip(ids, smiles, range(tf.shape(labels)[0]))
+            ),
+            columns=["id", "SMILES"] + metrics,
+        ).sort_values("f1")
+
+        fig = px.box(molecule_eval["precision"], x="time", y="total_bill", points="all")
+        fig.show()
+
+        with open(os.path.join(path, "classes.csv"), "w") as json_out:
+            class_eval.to_csv(json_out)
+
+        with open(os.path.join(path, "molecules.csv"), "w") as json_out:
+            molecule_eval.to_csv(json_out)
+
+        with open(os.path.join(path, "test.csv"), "w") as fout:
             for cid, smile, y_real, y_pred in zip(ids, smiles, labels.numpy(), pred):
                 fout.write(
                     cid
@@ -138,15 +177,18 @@ class LearningTask:
                 )
                 fout.write(",," + (",".join(map(str, y_pred)) + "\n"))
 
-    def eval_model(self, training_data, path=None):
-        self.model.summary()
-        threshold = 0.5
-        if not path:
-            path = os.path.join(self._model_root, "eval.csv")
-        with open(path, "w") as fout:
-            ids, smiles, features, labels = training_data
-            res = self.model.evaluate(features, labels, return_dict=True)
-            return res
+    @staticmethod
+    def _evaluate(y_true, y_pred):
+        p = tf.metrics.Precision(thresholds=0.5)(y_true, y_pred).numpy()
+        r = tf.metrics.Recall(thresholds=0.5)(y_true, y_pred).numpy()
+        return (
+            tf.metrics.BinaryAccuracy(threshold=0.5)(y_true, y_pred).numpy(),
+            p,
+            r,
+            2 * p * r / (p + r) if p + r != 0 else 0,
+            tf.metrics.CosineSimilarity()(y_true, y_pred).numpy(),
+            tf.metrics.AUC()(y_true, y_pred).numpy(),
+        )
 
     def run(self, epochs=1):
         _, _, x, y = self.dataprocessor.load_data(kind="train", loop=True)
@@ -161,9 +203,9 @@ class LearningTask:
         self.test_model(dataset, path=path)
 
     def eval(self, path=None):
-        dataset = self.dataprocessor.load_data(kind="test")
+        dataset = self.dataprocessor.load_data(kind="eval")
         print("Start evaluation")
-        self.eval_model(dataset, path=path)
+        self.test_model(dataset, path=path, name="eval")
 
     @property
     def config(self):
