@@ -59,17 +59,21 @@ def cont(task_id, dataset, epochs):
 
 @cli.command("test", help="Load existing task and run tests with cached test data.")
 @click.argument("task_id", required=True)
+@click.argument("dataset", required=True)
 @click.option("--path", default=None)
-def test(task_id, path):
-    t = load_task(task_id, load_best=True)
+@click.option("--load-best", default=True)
+def test(task_id, dataset, path, load_best):
+    t = load_task(dataset, task_id, load_best=load_best)
     t.test(path)
 
 
 @cli.command("eval", help="Load existing task and run tests with cached test data.")
 @click.argument("task_id", required=True)
+@click.argument("dataset", required=True)
 @click.option("--path", default=None)
-def eval(task_id, path):
-    t = load_task(task_id, load_best=True)
+@click.option("--load-last", default=False, is_flag=True)
+def eval(task_id, dataset, path, load_last):
+    t = load_task(dataset, task_id, load_best=not load_last)
     t.eval(path)
 
 
