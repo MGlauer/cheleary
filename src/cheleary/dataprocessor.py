@@ -24,6 +24,12 @@ class DataProcessor:
         self.length = int(sum(1 for _ in self.load_data(kind="train")))
 
     @property
+    def label_headers(self):
+        with open(os.path.join(self.raw_data_path, f"test.pkl"), "rb") as output:
+            chemdata = pickle.load(output)
+        return chemdata.columns[2:]
+
+    @property
     def raw_data_path(self):
         return f".data/{self.dataset}/raw"
 
