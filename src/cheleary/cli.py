@@ -100,14 +100,17 @@ else:
     @click.argument("path", required=True)
     def collect_dl_data(path):
         # Move this import here because it is not available everywhere
-        os.makedirs(os.path.join(".data", "splits"), exist_ok=True)
+        classes = 100
+        individuals = 100
+        path = os.path.join(".data", f"r_c{classes}i{individuals}", "raw")
+        os.makedirs(path, exist_ok=True)
         dprep = ChebiDataPreparer()
-        chemdata = dprep.getDataForDeepLearning(500, 100)
+        chemdata = dprep.getDataForDeepLearning(individuals, classes)
         train, remainder = train_test_split(chemdata, shuffle=True, test_size=0.3)
         test, eval = train_test_split(remainder, shuffle=False, test_size=0.7)
         d = {"test": test, "train": train, "eval": eval}
         for kind in ["train", "test", "eval"]:
-            with open(os.path.join(".data", "splits", f"{kind}.pkl"), "wb") as pkl:
+            with open(os.path.join(path, f"{kind}.pkl"), "wb") as pkl:
                 pickle.dump(
                     d[kind], pkl,
                 )
