@@ -1,12 +1,14 @@
 import click
 from cheleary.task import LearningTask, load_task
 from cheleary.encode import Encoder
+from cheleary import encode
 from cheleary.dataprocessor import DataProcessor
 from cheleary.models import Model
 from cheleary.analysis import analyze as an
 from sklearn.model_selection import train_test_split
 import pickle
 import os
+import tensorflow as tf
 
 cli = click.Group(
     help="Cheleary is a toolkit to build an easy training environment. It implements different kinds of"
@@ -114,6 +116,23 @@ else:
                 pickle.dump(
                     d[kind], pkl,
                 )
+
+
+@cli.command("predict-smiles",)
+@click.argument("model", required=True)
+@click.argument("header_path", required=True)
+@click.argument("path", required=True)
+def predict_smiles(path, header_path, model):
+    headers = [line for line in open(header_path, "r")]
+    inp_enc = encode.SmilesAtomEncoder()
+    data = [inp_enc.run((None, line)) for line in open(path, "r")]
+
+    model = tf.keras.models.load_model(model)
+    predictions = model.predict(data)
+    for pred in predictions:
+        labels = zip(headers, pred)
+        for pair in sorted(labels, key=lambda x: -x[1]):
+            print(pair)
 
 
 def _list_registerables(reg_cls):
