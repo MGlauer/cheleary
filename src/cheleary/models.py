@@ -56,32 +56,6 @@ class Model(Registerable):
         return "\n".join(s)
 
 
-class NPClassifierModel(Model):
-    _ID = "np_classifier"
-
-    def __init__(self):
-        super(NPClassifierModel, self).__init__()
-        self._optimizer = tf.keras.optimizers.Adam
-        self._loss = tf.keras.losses.BinaryCrossentropy()
-        self.learning_rate = 0.00001
-
-    def create_model(self, input_shape, output_shape, **kwargs):
-        input_f = tf.keras.layers.Input(shape=input_shape)
-
-        X = tf.keras.layers.Dense(6144, activation="relu")(input_f)
-        X = tf.keras.layers.BatchNormalization()(X)
-        X = tf.keras.layers.Dense(3072, activation="relu")(X)
-        X = tf.keras.layers.BatchNormalization()(X)
-        X = tf.keras.layers.Dense(1536, activation="relu")(X)
-        X = tf.keras.layers.BatchNormalization()(X)
-        X = tf.keras.layers.Dense(1536, activation="relu")(X)
-        X = tf.keras.layers.Dropout(0.2)(X)
-        output = tf.keras.layers.Dense(output_shape[-1], activation="sigmoid")(X)
-        model = tf.keras.Model(inputs=[input_f], outputs=output)
-
-        return model
-
-
 class ConvModel(Model):
     _ID = "conv"
 
@@ -189,6 +163,69 @@ class BiLSTMClassifierModel(Model):
         return model
 
 
+class DoubleBiLSTMClassifierModel(Model):
+    _ID = "double_bi_lstm_classifier"
+
+    def __init__(self):
+        super().__init__()
+        self.learning_rate = 0.001
+        self._loss = tf.keras.losses.BinaryCrossentropy()
+        self._optimizer = tf.keras.optimizers.Adam
+
+    def create_model(self, input_shape, output_shape, **kwargs):
+        model = tf.keras.Sequential()
+
+        model.add(tf.keras.layers.InputLayer(input_shape=(None,), ragged=True))
+
+        model.add(
+            tf.keras.layers.Embedding(300, 10, input_shape=(None,), name="inputs")
+        )
+        model.add(
+            tf.keras.layers.Bidirectional(
+                tf.keras.layers.LSTM(
+                    20,
+                    activation=tf.keras.activations.tanh,
+                    recurrent_activation=tf.keras.activations.sigmoid,
+                    name="forward",
+                    recurrent_dropout=0.2,
+                    unroll=False,
+                    use_bias=True,
+                    return_sequences=True,
+                )
+            )
+        )
+
+        model.add(
+            tf.keras.layers.Bidirectional(
+                tf.keras.layers.LSTM(
+                    20,
+                    activation=tf.keras.activations.tanh,
+                    recurrent_activation=tf.keras.activations.sigmoid,
+                    name="forward",
+                    recurrent_dropout=0.2,
+                    unroll=False,
+                    use_bias=True,
+                )
+            )
+        )
+
+        model.add(
+            tf.keras.layers.Dense(
+                100, use_bias=True, activation=tf.keras.activations.relu,
+            )
+        )
+        model.add(tf.keras.layers.Dropout(rate=0.2))
+        model.add(
+            tf.keras.layers.Dense(
+                output_shape[-1],
+                use_bias=True,
+                name="outputs",
+                activation=tf.keras.activations.sigmoid,
+            )
+        )
+        return model
+
+
 class BiLSTMClassifierSpreadModel(Model):
     _ID = "bi_lstm_classifier_spread"
 
@@ -222,7 +259,37 @@ class BiLSTMClassifierSpreadModel(Model):
         )
         model.add(
             tf.keras.layers.Dense(
-                input_shape,
+                100,
+                use_bias=True,
+                name="outputs",
+                activation=tf.keras.activations.sigmoid,
+            )
+        )
+        return model
+
+
+class SimpleFeedForward(Model):
+    _ID = "simple"
+
+    def __init__(self):
+        super().__init__()
+        self.learning_rate = 0.0005
+        self._loss = tf.keras.losses.BinaryCrossentropy(
+            reduction=tf.keras.losses.Reduction.NONE
+        )
+        self._optimizer = tf.keras.optimizers.Adam
+
+    def create_model(self, input_shape, output_shape, **kwargs):
+
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.InputLayer(input_shape=(1024,)))
+        # model.add(tf.keras.layers.Dropout(0.2))
+        model.add(tf.keras.layers.Dense(1024, activation="relu", use_bias=True))
+        model.add(tf.keras.layers.Dense(1024, activation="tanh", use_bias=True))
+        model.add(tf.keras.layers.Dropout(0.2))
+        model.add(
+            tf.keras.layers.Dense(
+                100,
                 use_bias=True,
                 name="outputs",
                 activation=tf.keras.activations.sigmoid,
