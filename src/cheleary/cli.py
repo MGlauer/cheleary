@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import pickle
 import os
 import tensorflow as tf
+import json
 
 cli = click.Group(
     help="Cheleary is a toolkit to build an easy training environment. It implements different kinds of"
@@ -123,16 +124,16 @@ else:
 @click.argument("header_path", required=True)
 @click.argument("path", required=True)
 def predict_smiles(path, header_path, model):
-    headers = [line for line in open(header_path, "r")]
+    headers = [line[:-1] for line in open(header_path, "r").readlines()]
     inp_enc = encode.SmilesAtomEncoder()
-    data = [inp_enc.run((None, line)) for line in open(path, "r")]
-
+    lines = [line for line in open(path, "r").readlines()]
+    data = tf.ragged.constant([inp_enc.run((None, line)) for line in lines])
     model = tf.keras.models.load_model(model)
     predictions = model.predict(data)
-    for pred in predictions:
-        labels = zip(headers, pred)
-        for pair in sorted(labels, key=lambda x: -x[1]):
-            print(pair)
+    for mol, pred in zip(lines, predictions):
+        print(mol)
+        labels = zip(headers, map(float, pred))
+        print(json.dumps(dict(sorted(labels, key=lambda x: -x[1])), indent=2))
 
 
 def _list_registerables(reg_cls):
